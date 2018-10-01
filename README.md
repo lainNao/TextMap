@@ -6,7 +6,7 @@ TextMap
 ## URL
 <https://neji205.github.io/TextMap/>
 
-## 再生されるかわからないデモ動画
+## デモ動画
 ![result](https://github.com/neji205/TextMap/blob/master/example.gif)
 
 ## 用途
