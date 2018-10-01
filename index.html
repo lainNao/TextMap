@@ -1,0 +1,1493 @@
+<!DOCTYPE html>
+<html lang="ja">
+<style type="text/css" id="mainCSS">
+body{
+	margin:0;
+	padding:0; 
+	overflow:hidden;
+	background-color:black;
+}
+#screen{
+	position:relative;
+	background-color:black;
+}
+#htmlMainScreen{
+	position:relative;
+	left:0;
+}
+	#infoGroup{
+		position:absolute;
+		font-size:13px;
+		top:20px;
+		right:30px;
+		width:200px;
+		height:10px;
+		color:teal;
+		z-index:2;
+	}		
+			#mindMapName{
+				border:none;
+				background-color:rgb(0,0,0,0);
+				height:1em;
+				line-height:1em;
+				padding:0; 
+			}
+			#presentDirName{
+				border:none;
+				background-color:rgb(0,0,0,0);
+				height:1em;
+				line-height:1em;
+				padding:0; 
+			}
+			#downloadJson{
+			}
+			#downloadJson:hover{
+				cursor:pointer;
+				color:blue;
+				text-decoration: underline;
+			}
+			#defWidthInfo{
+				margin-right:5px;
+				border:none;
+				background-color:rgb(0,0,0,0);
+				height:1em;
+				line-height:1em;
+				padding:0; 
+			}
+			#defHeightInfo{
+				margin-right:5px;
+				border:none;
+				background-color:rgb(0,0,0,0);
+				height:1em;
+				line-height:1em;
+				padding:0; 
+			}
+				#downloadJson{
+					color:teal;
+				}
+				#dirPath{
+					color:teal;
+				}
+				#scaleDisp{
+					color:teal;
+				}
+.lines{
+	stroke-weight:2;
+	stroke:orange;
+}
+</style>
+<style type="text/css" id="cssOfInfoValuesClass">
+.infoValues{	
+	padding:0; 
+	margin-top:0;
+	margin-bottom:0;
+	margin-left:20px;
+	margin-right:5px;
+	color:lightgreen;
+	word-wrap:break-word;
+	font-size:13px;
+	resize: vertical;
+}
+</style>
+<style type="text/css" id="cssOfNodeClass">
+.node{
+	position:absolute;
+	outline:none;
+	font-size:10px;
+	min-width:30px;
+	min-height:10px;
+	width:40px;
+	height:40px;
+	padding:5px;
+	background-color:rgb(0,0,0,0.8);
+	border:solid;
+	border-radius:10px;
+	border-color:white;
+	border-style:dashed;
+	border-width:1px;
+	color:white;
+	z-index:2;
+}
+</style>
+
+
+
+
+
+
+
+
+
+<body>
+	<div id="screen">
+		<div id="htmlCanvas">
+			<div id="htmlMainScreen">
+				<div id="nodeGroup"></div>
+			</div>
+			<div id="htmlSubScreen">
+				<div id="infoGroup">
+					<span>Info/Settings</span><br/>
+					<br/>
+					<br/>
+					<span>[File]</span><br/>
+					<span>file name:</span><br/>
+					<input type="text" id="mindMapName" class="infoValues" value="your map"></input><br/>
+					<span>download:</span><br/>
+					<span id="downloadJson" class="infoValues">download</span><br/>
+					<br/>
+					<br/>
+					<span>[Map]</span><br/>
+					<span>dir name:</span><br/>
+					<input type="text" id="presentDirName" class="infoValues" value="root"></input><br/>
+					<span>path:</span><br/>
+					<div id="dirPath" class="infoValues"></div>
+					<br/>
+					<br/>
+					<span>[Style]</span>
+					<br/>
+					<span>node default width(30~):</span><br/>
+					<input type="tel" id="defWidthInfo" class="infoValues" value="50"></input>
+					<br/>
+					<span>node default height(10~):</span><br/>
+					<input type="text" id="defHeightInfo" class="infoValues"  value="50"></input><br/>
+					<span>screen scale:</span><br/>
+					<span id="scaleDisp" class="infoValues"></span><br/>
+					<br/>
+					<br/>
+				</div>
+			</div>
+		</div>
+		<svg id="svgCanvas">
+			<g id="svgMainScreen" transform="translate(0,0)">
+				<g id="lineGroup"></g>
+				<g id="circleGroup"></g>
+			</g>
+			<g id="svgSubScreen">
+			</g>
+		</svg>
+	</div>
+</body>
+<script>
+
+
+
+
+
+
+
+
+
+
+
+/*
+★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+＜説明＞
+	・ノード作成		//スペースキー
+	・ノード移動		//ノードを左ドラッグ
+	・ノード接続		//ノードを右ドラッグ
+	・ノードに入る		//マウススクロールアップ（ノードの上で）
+	・ノードを出る		//マウススクロールダウン
+
+＜バグ＞	
+	・なぜかデフォ位置でノード作った後、別位置にマウス動かしてノード作ると最初のが消えるバグある
+		というかそれより酷くて、infoGroupの表示も消えたわ。なんだこれ。付け焼き刃でもいいから処理したいわ
+		
+	・ブラウザ拡大率が100%以外のときにサイトに入ってきたら（またはf5で更新したらも？）infoGroupの表示がバグる
+		・これは無理やろ。直せたら神
+		・これがバレるの辛いから最初からノードや文字の大きさを自分用にキャリブレーションしておくかな。調整してこうなりたくないし
+
+＜追加機能案＞
+	・ノード削除機能をつける（どんな動作に紐付けるかは…どうしようね…）
+		・指定idが現在のdomにあるならdomからも消す
+		・dir_listのcontain_idsからも消す
+		・線とかも消す
+		的な処理ってすでにあったよな？あれをやればいいのでは？使いまわせる予感すぐにできそうな予感
+		
+	・間違って削除したノードを復活させる、戻る機能あればいいけど、これ大変だな…
+		・消すな！！
+		・ゴミ箱ノードでも各自で作れや！！！ﾜﾗｵ
+	
+	・右ドラッグしたら範囲内複数選択（またはctrl + 左クリックでも複数選択可能）
+		・一斉選択されてるのを左ドラッグしたら一気に動かせる
+			・複数選択状態でノードにド左ロップした場合、そのノード内に一斉に入る
+		・複数選択状態でノードに右ドロップした場合、そのノードに全部線が繋がる
+
+	・データ防御機能
+		・あと間違って更新ボタン押しちゃってマインドマップが消えちゃった！うわー！ってならないように、f5押したら強制保存するとか、f5をpreventDefaultするとか、確認画面出すとかしたほうがいい
+
+	・接続元と先を明らかにする
+		・フォーカス合ってる時にfromからtoへと丸図形が移動するとかなんかするようにしたほうが本来いい（on/off可能にして）
+		
+＜スタイルの提案＞
+
+	・どっかにエクスプローラーを出せるようにして、そっから移動できるようにする（特にファイルドロップした時にそっから選択できるほうがいいかも）
+		・エクスプローラー表示ボタンを押したら右からフォン…ってモーダルウィンドウ上のエクスプローラーが出てくるとか
+			けっこう階層深くなる場合もあるから、そのモーダルウィンドウはど真ん中に出ていいと思う。（いや、左側とかのほうがいいか）
+
+	・ウィンドウのあれこれ
+		・ズームしたらデフォだと左上にズームされるから、マウス位置にズームされるように、「moveTo(x,y)」で無理やりマウス位置に移動させるようにできないかな
+
+	・もっとinfoGroupにいろいろ表示させていいと思う
+		[Style]
+			・可変文字サイズinput
+
+	・その他infoValuesのあれこれ
+		・inputの幅をもう少し狭めて
+		・編集可能なやつとそうでないやつの見分けがつかないのでつくようにしたほうがいいかな
+		
+
+＜あえてやらない＞
+	■ノードの自動リサイズ（文字の量により自動で高さをmax-height上限まで広げる）
+		・なぜやらないのかは、総合的に考えて「勝手にmax-heightまで広がると、形を好きにスタイリングしづらい」から
+		・個人的に、文字を打ち込みやすいかどうかより、スタイリングのしやすさ（ノードお大きさを自分で制御できること）の方が大事
+		・考えたけど辞めた
+
+	■dirでないノードにも名前をつけること
+		・contentのテキストに加えて別の文字列を入力するのは、ちょっとシンプルじゃないと思った
+		・名前をつけられるのはあくまでもpath表示の利便性を上げるためであってノード時代に名前をつけるのはちょっと違うかな微妙だけど、と思った
+		・いやノードに名前つけれたほうが簡潔にはなりそうだけど、でもそしたら各ノードに名前つけたくなる気がして…
+		・基本的にノードは無名で、dir化したものだけ束ねる際の名前を持つ感じにしてるけど、うーんそれでいいのかな
+		・この仕様変えたら、互換性失われるな。データ変換プログラム作ってjsonを書き直せば移行できなくもないけど。
+
+	■リサイズ直後のワンクリック無反応への対処
+		・resize直後に右上に○～○的な表示残っている状態だとクリックイベントが一回無効になるから、それを防止するために一つ無理やりクリックイベント発火させるかな
+		・と思っていたんだけど、無理だわ。
+		・いやできるか。nowResizingがtrueの時にマウスが画面上を動かされたらワンクリック発火するとか。
+		・できるっぽいかな？
+		・でもやっぱりやんないでいいわ。一瞬だし。いらんわ。
+
+＜プログラム改善案＞
+	・transformしてるの個別にやってるから、transformする要素を統一しよう一つに。そうしたら無駄な処理がたぶんだいぶ減る。まあこれは後ででいいかな
+	・Numberが乱立してる（parseIntは「px」を無視して数値化するために有効活用しているからいいとして。）
+	・|0が乱立してる
+	・あともっと右側に表示を出す
+	・コーディング規約がバラバラすぎてる
+	
+＜メモ＞	
+	・mousedragするだけで　dir_listのmoved_positionが勝手に各dirが連動して書き換わりまくるというバグがあったけど、
+			moved_position  = {"x": (moved_position.x + e.movementX), "y":(moved_position.y + e.movementY) }
+		とすることで書き換わりまくるという症状は消えた。
+		でもドラッグするとやっぱりdir_listの中身が、値は変わらないけど、同じ値が入れ替わりまくってるのは分かる（代入されてる時の色変化するから）
+		ってことはやっぱmoved_positionが書き換わると強制的にdir_listにも繋がる…？なんだこれは
+		ドラッグする度にいちいちdir_list更新されたら処理無駄だからこれ解消したいな…
+
+＜保存してるデータ構造＞
+{
+	node_list:[
+		{
+			id:			ノードID
+			parent_id	所属する親ノードid（id 0ならこれはnullとする）
+			is_dir:		trueかfalse
+			content:	テキスト内容
+			left:
+			top:
+			width:
+			height:
+			to:		
+			from:		
+	
+		}
+	],
+	dir_list:[
+		{
+			id:								ノードidを入れる
+			name:							ディレクトリ名を任意で入れる（デフォはノードid）
+			parent_id:						親ノードid
+			contain_ids:[]					保持してるノード達のid
+			moved_position:					moved_positionを入れる
+			def_node_size:{width:,height:}	そのdirのデフォルトのノードサイズ
+		}
+	],
+	max_id:最高ID（ダウンロード時にnode_id_cntを入れておく）
+}
+
+
+
+
+
+		
+	
+	*/
+
+
+//変数
+//要素
+var screen = document.getElementById("screen");						//基準スクリーン
+var htmlCanvas = document.getElementById("htmlCanvas");					//htmlカンバス
+var htmlMainScreen = document.getElementById("htmlMainScreen");				//htmlメインスクリーン
+var nodeGroup = document.getElementById("nodeGroup");							//ノードグループ
+var htmlSubScreen = document.getElementById("htmlSubScreen");				//htmlサブスクリーン
+var infoGroup = document.getElementById("infoGroup");							//インフォグループ
+var svgCanvas = document.getElementById("svgCanvas");;					//svgカンバス
+var svgMainScreen = document.getElementById("svgMainScreen");				//svgメイン画面
+var lineGroup = document.getElementById("lineGroup");							//線グループ
+var circleGroup = document.getElementById("circleGroup");						//円グループ
+var svgSubScreen = document.getElementById("svgSubScreen");					//svgサブ画面
+//スタイル
+var cssOfNodeClass = document.getElementById("cssOfNodeClass");		//書き換える用スタイル要素1
+var cssOfInfoValuesClass = document.getElementById("cssOfInfoValuesClass");
+//詳細
+var mindMapName = document.getElementById("mindMapName");				//マインドマップ名
+var presentDirName = document.getElementById("presentDirName");			//現在のディレクトリ名
+var downloadJson = document.getElementById("downloadJson");				//ダウンロードボタン
+var dirPath = document.getElementById("dirPath");						//パス
+
+//メインデータ
+var node_list			//作成されたノードが入っているリスト
+var dir_list			//作成されたディレクトリが入っているリスト（ノードと紐付いてる）
+//事務変数
+var dirs = []			//作成した全dirの情報
+var current_dir_id		//所属ディレクトリID（初期値rootは0）
+var scale				//画面拡大率
+var pre_scale			//前回の画面拡大率
+//ノード
+var draggingNodeL		//左ドラッグ中ノード
+var draggingNodeR		//右ドラッグ中ノード
+var focusingNode		//フォーカス中ノード
+var toNode				//接続先ノード
+var canDroppedNode		//他のノードに入れられる側のノード
+var nodeResizing		//ノードリサイズ中かどうか
+var xyBeforeDrag={"x":0,"y":0}	//ドラッグ開始時のドラッグ対象の座標（ほかノードにドロップした時に再現するため）
+var draggingScreen		//スクリーンドラッグ中フラグ
+//線
+var fromForResize		//リサイズノードから伸びた線
+var toForResize			//リサイズノードへ伸ばされた線
+//カウンタ
+var fpsCnt = 0			//fps調整カウンタ
+var node_id_cnt			//ノードIDカウンタ（0はrootフォルダなのでデフォは1から開始）
+//座標	
+var moved_position={"x":0, "y":0,}	//マップの中心位置（基準値として使う）
+var now={							//現在マウス位置（mousemoveごとに記録）（Spaceキーでノード作成する時に使う）（初期値は画面中央）
+	"x":Number(window.outerWidth)/2,
+	"y":Number(window.outerHeight)/2
+}
+
+//マクロ
+var NODE_DEF_REAL_R = 30					//デフォのノードの本当の半径（border-radius含んだもの。これはwidthがない時に使う。消していいかも）
+var LEFT_BUTTON = 1							//左ボタン
+var RIGHT_BUTTON =2							//右ボタン
+var INFOGROUP_RIGHT_GAP =parseInt(getStyleValue("mainCSS","#infoGroup","right"))		//infogroupの右側からの距離
+var INFOGROUP_WIDTH = parseInt(getStyleValue("mainCSS","#infoGroup","width"))			//
+var INFOGROUP_FONTSIZE = parseInt(getStyleValue("mainCSS","#infoGroup","font-size"))	//
+
+
+
+
+//デバッグ用
+/*
+function show_dirlist(){
+	var debug_info = document.createElement("span")
+	infoGroup.appendChild(debug_info)
+	setInterval(()=>{
+		debug_info.innerText = JSON.stringify(dir_list)
+	},100)
+}
+show_dirlist()
+*/
+
+
+
+
+//----------------------------------------------------------------------初期化
+
+
+/*完了*/
+//初期化（サイト読込時のみ）
+function init(){
+	function init_style(){
+		function init_scale(){
+			scale = window.devicePixelRatio.toFixed(2)		//スケール
+			var _adjustScale = (1/scale).toFixed(2)			//表示倍率
+
+			//カンバスサイズ
+			svgCanvas.setAttribute("width" , window.outerWidth*_adjustScale +"px")
+			svgCanvas.setAttribute("height", window.outerHeight*_adjustScale +"px")
+			
+			//スケールに合わせたinfoGroup
+			infoGroup.style.width  = INFOGROUP_WIDTH*_adjustScale+"px"
+			infoGroup.style.top  =  10*_adjustScale + "px"					//ここらへんの10とか20とか100とかのリテラルどうにかしたい
+			infoGroup.style.left =  (window.outerWidth-INFOGROUP_WIDTH-INFOGROUP_RIGHT_GAP)*_adjustScale +"px"
+			infoGroup.style.fontSize = INFOGROUP_FONTSIZE*_adjustScale+"px"
+			infoGroup.style.lineHeight = Math.min(100*_adjustScale,100) +"%"	//いらないのでは？
+			rewriteStyle(cssOfInfoValuesClass,".infoValues","margin-left",20*_adjustScale+"px;")
+			rewriteStyle(cssOfInfoValuesClass,".infoValues","font-size",INFOGROUP_FONTSIZE*_adjustScale+"px;")
+			pre_scale = scale
+		}
+
+		function init_infoGroup_style(){
+			mindMapName.spellcheck = false			//スペルチェック
+			presentDirName.spellcheck = false		//スペルチェック
+			mindMapName.rows = 1					//窓高
+			presentDirName.rows = 1					//窓高
+			scaleDisp.innerText = scale				//スケール
+		}
+		
+
+		init_scale();		
+		init_infoGroup_style();
+	}
+	
+	init_style()
+	init_data()
+	node_list.push({		//ルートノード作成
+			"id":0,
+			"parent_id":null,
+			"is_dir":"true",
+			"content": "",
+			"left":0,
+			"top":0,
+			"width":0,
+			"height":0,
+			"to": "[]",
+			"from": "[]"
+		});
+	make_dir("ROOT");		//ノートdir作成
+	move_dir(0)
+}
+
+//データを削除
+function init_data(){
+	current_dir_id = 0		//カレントディレクトリ
+	node_id_cnt = 1			//ノードIDカウンタ
+	dir_list = []			//ディレクトリリスト
+	node_list = []			//ノードリスト
+}
+
+
+//----------------------------------------------------------------------再読込機能
+
+//イベント（ドラッグ中）
+window.ondragover=(e)=>{
+	console.log("　　　　マウスがドラッグオンされている");
+	e.preventDefault();
+}
+
+//ドロップされたjsonファイルのrootフォルダを表示させる
+window.ondrop=(e)=>{
+	e.preventDefault()
+	var file = e.dataTransfer.files[0]				//ファイル
+	//json以外拒否
+	if(!file || file.type != "application/json"){
+		console.log("JSON以外のものがドロップされた")
+		return;
+	}else{
+		//読み込み
+		var reader = new FileReader;				//ファイルリーダー
+		reader.onloadend= (res)=>{
+			console.log("JSON読み込み成功");
+			var _json = JSON.parse(res.target.result)
+
+			//データ読み込み
+			node_list = _json.node_list				//ノード情報
+			dir_list = _json.dir_list				//dir情報
+			node_id_cnt = _json.max_id				//ノードカウンタ
+			move_dir("READ_FILE")					//ルートを表示
+
+			//表示更新
+			mindMapName.value = file.name.slice(0,-5)
+		}
+		reader.readAsText(file)						//読み込み開始
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//----------------------------------------------------------------------infoGroup
+
+//誤ドラッグ防止
+infoGroup.ondragover=(e)=>{
+	e.preventDefault()
+}
+//誤ドロップ防止
+infoGroup.ondrop=(e)=>{
+	e.preventDefault()
+}
+
+infoGroup.onmousedown =(e)=>{
+	console.log("%c　　infoGroupでマウスダウン","color:skyblue");
+	
+	//infoValuesのtextarea,inputにマウスダウンの場合、全選択
+	if(e.target.className =="infoValues"){
+		if(e.target.nodeName == "INPUT" || e.target.nodeName == "TEXTAREA"){
+			setTimeout(function(){e.target.select()},0)		//紛らわしいけど単なる全選択
+		}
+	}
+}
+
+
+//dir nameでちゃんとエンターされたらブラー
+presentDirName.onkeydown=(e)=>{
+	if(e.key == "Enter"){
+		document.activeElement.blur()
+	}
+}
+
+//ダウンロードボタンでダウンロード
+downloadJson.onclick = ()=>{
+	console.log("jsonでダウンロード開始")
+
+	//データ作成
+	save_current_dir_and_node()
+	var _save_data ={}
+	_save_data.node_list = node_list
+	_save_data.dir_list = dir_list
+	_save_data.max_id = node_id_cnt
+
+	//変数
+	var blob = new Blob( [JSON.stringify(_save_data)], {type: 'text/plain'} )
+	var link = document.createElement('a')
+	link.href = URL.createObjectURL(blob)
+	link.download = document.getElementById("mindMapName").value + ".json"
+
+	//ダウンロード
+	link.click()	
+}
+
+
+//file nameでちゃんとエンターされたらブラー
+mindMapName.onkeydown=(e)=>{
+	if(e.key == "Enter"){
+		document.activeElement.blur()
+	}
+}
+//dir nameでちゃんとエンターされたらブラー
+presentDirName.onkeydown=(e)=>{
+	if(e.key == "Enter"){
+		document.activeElement.blur()
+	}
+}
+//dir nameをフォーカスブラーしたらディレクトリデータ更新
+presentDirName.onblur=(e)=>{
+	save_current_dir_and_node()
+	dirPath.innerText = getDirPathFromRootTo(getElement_ByKeyValuePair_FromArrayOfObject(dir_list,"id",current_dir_id)).join(" > ")														
+}
+
+
+//幅や高さ入力は半角数値のみにする
+defWidthInfo.oninput=(e)=>{
+	limitValueOnlySmallNum(e)
+}
+defHeightInfo.oninput=(e)=>{
+	limitValueOnlySmallNum(e)
+}
+
+//エンターでフォーカスブラー
+defWidthInfo.onkeydown=(e)=>{
+	if(e.key == "Enter") document.activeElement.blur()
+}
+defHeightInfo.onkeydown=(e)=>{
+	if(e.key == "Enter") document.activeElement.blur()
+}
+
+//ブラーして空欄や0で終わってたらそれぞれ最低値に書き換える
+defWidthInfo.onblur = (_e)=>{
+	if(_e.target.value == "" || Number(_e.target.value) < 10) _e.target.value = 30
+}
+defHeightInfo.onblur = (_e)=>{
+	if(_e.target.value == "" || Number(_e.target.value) < 10) _e.target.value = 10
+	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+//--------------------------------------------------------------------その他一般機能
+
+//指定IDのディレクトリに移動（READ_FILEとかでめんどいことになっているのは、save_current_dir_and_node()をjsonをドラッグ＆ドロップしてから読み込む時にされるとバグるから、それを避けるため）
+function move_dir(_dir_id){
+	if(_dir_id != "READ_FILE"){
+		var _dir = getElement_ByKeyValuePair_FromArrayOfObject(dir_list,"id",Number(_dir_id))	//create_nodeをやってから、このmove_dirをやるまでの間にdir_listがバグるな。
+	}else{
+		var _dir = getElement_ByKeyValuePair_FromArrayOfObject(dir_list,"id",0)			//json読み込みの場合ルート
+	}
+
+	//バリデーション
+	if(_dir == null){
+		console.log("%cdir"+_dir_id+"が存在しない","color:red");
+	}else{
+		console.log("%cdir移動（"+_dir_id+"）","color:orange");
+	}
+	
+	//処理
+	if(_dir_id != "READ_FILE") save_current_dir_and_node()	//カレントディレクトリとノードをデータ的に保存
+	del_screen();											//ノード達削除
+	disp_dir(_dir)											//指定dirを表示
+}
+
+
+//カレントディレクトリのノードを繋ぐ線を再生する
+function make_lines(){
+	var _nodes = document.getElementsByClassName("node")
+	for(var _node of _nodes){
+		var _to_ids = eval(_node.dataset.to)
+		for(var _to_id of _to_ids){
+			make_line(_node, document.getElementById(_to_id))
+		}
+	}
+}
+
+//指定したノードからノードへと繋がる線を作る
+function make_line(_from_node, _to_node){
+	var _line = document.createElementNS("http://www.w3.org/2000/svg", "line")
+	_line.setAttribute("x1",parseInt(_from_node.style.left)+(parseInt(_from_node.style.width)+10)/2)
+	_line.setAttribute("y1",parseInt(_from_node.style.top)+(parseInt(_from_node.style.height)+10)/2)
+	_line.setAttribute("x2",parseInt(_to_node.style.left)+(parseInt(_to_node.style.width)+10)/2)
+	_line.setAttribute("y2",parseInt(_to_node.style.top)+(parseInt(_to_node.style.height)+10)/2)
+	_line.setAttribute("class","lines")
+	_line.dataset.from = _from_node.id
+	_line.dataset.to = _to_node.id
+	lineGroup.appendChild(_line)
+}
+
+//指定ディレクトリを表示
+function disp_dir(_dir){
+	//変数調整
+	current_dir_id = Number(_dir.id)																	//dir id
+	presentDirName.value = _dir.name																	//ディレクトリ名
+	defWidthInfo.value = _dir.def_node_size.width														//デフォ幅
+	defHeightInfo.value = _dir.def_node_size.height														//デフォ高
+	dirPath.innerText = getDirPathFromRootTo(_dir).join(" > ")											//パス
+	moved_position = _dir.moved_position																//移動距離
+	defWidthInfo.value = _dir.def_node_size.width;														//デフォサイズ
+	defHeightInfo.value = _dir.def_node_size.height;													//デフォサイズ
+
+	//画面作成
+	disp_nodes_from_node_ids(_dir.contain_ids)																		//ノード表示
+	make_lines()																									//線表示
+	rewriteStyle(cssOfNodeClass,".node","transform","translate("+moved_position.x +"px,"+moved_position.y +"px);");	//移動
+	svgMainScreen.setAttribute("transform","translate("+moved_position.x+","+moved_position.y+")");					//移動
+}
+
+//指定ID達のノードを表示
+function disp_nodes_from_node_ids(_node_ids){
+	_node_ids.filter((id)=>{
+		node_list.some((node)=>{
+			if(id == Number(node.id)){
+				create_node("READ",node)
+				return true
+			}
+		});
+	});
+}
+
+
+//ノードを現在の画面に作成または表示する（一応作成時はnodeオブジェクトを返す）
+//作成時（"CREATE",null)
+//読込時（"READ",ノードオブジェクト）
+function create_node(_mode,_read_node_info){
+
+	var _node = document.createElement("textarea")
+	//セット
+	_node.ondblclick =(e)=>		{console.log("ノード上でダブルクリック")}
+	_node.onmousedown =(e)=>	{onMouseDownOnNode(e,_node)}		//マウスダウン（ノードの上でのマウスダウン）
+	_node.onmouseover =(e)=>	{onMouseOverOnNode(e)}				//マウスオーバー（ノードへのマウスオーバー）
+	_node.onmouseout =(e)=>		{onMouseOutOnNode(e)}				//マウスアウト（ノードからのマウスアウト）
+	_node.onmouseup =(e)=>		{onMouseUpOnNode(e,_node)}			//マウスアップ（ノード上でのマウスアップ）
+	_node.oncontextmenu =()=>	{return false}						//ノードを右クリックした時、通常出る右クリメニューを出なくする（邪魔なので）
+	_node.ondragstart =(e)=>	{e.preventDefault();}				//移動時に文字がドラッグ開始されちてバグるからそれを禁止
+	_node.onmousewheel =(e)=>	{onMouseWheelOnNode(e,_node);}		//マウスホイール
+	_node.className = "node"
+	_node.spellcheck　=　false
+
+	if(_mode == "CREATE" && _read_node_info == null){
+		console.log("%c　　ノード作成","color:green")
+		//変数
+		var defW = Number(document.getElementById("defWidthInfo").value)
+		var defH = Number(document.getElementById("defHeightInfo").value)
+		var x = (now.x - moved_position.x) - (defW+10)/2
+		var y = (now.y - moved_position.y) - (defH+10)/2
+		
+		//セット
+		_node.id = Number(node_id_cnt)
+		_node.parent_id = Number(current_dir_id)
+		_node.setAttribute("style","left:"+x+"px; top:"+y+"px; width:"+defW+"px; height:"+defH+"px; z-index:2;")
+		_node.dataset.to =  "[]"
+		_node.dataset.from =  "[]"
+		_node.dataset.is_dir = false
+		
+		//事務
+		node_id_cnt = node_id_cnt + 1		//作成するノード番号を++
+		node_list.push({					//ノードリスト
+			"id":Number(_node.id),
+			"parent_id":Number(current_dir_id),
+			"is_dir":false,
+			"content": "",
+			"left":Number(x),
+			"top":Number(y),
+			"width":Number(defW),
+			"height":Number(defH),
+			"to": "[]",
+			"from": "[]"
+		});
+
+	}else if(_mode=="READ"){
+		console.log("%c　　ノード読込","color:green")
+
+		//セット
+		_node.id = Number(_read_node_info.id);
+		_node.setAttribute("style","left:"+_read_node_info.left+"px; top:"+_read_node_info.top+"px; width:"+_read_node_info.width+"px; height:"+_read_node_info.height+"px; z-index:2;");
+		_node.dataset.to = "["+eval(_read_node_info.to).join(",")+"]"
+		_node.dataset.from = "["+eval(_read_node_info.from).join(",")+"]"
+		_node.dataset.is_dir = _read_node_info.is_dir
+		_node.value = _read_node_info.content
+		style_for_dir(_node)
+	}
+
+	//追加
+	nodeGroup.appendChild(_node)
+	return _node
+}
+
+
+//カレントディレクトリの情報をデータ的に保存する
+function save_current_dir_and_node(){
+	var _elems = document.getElementsByClassName("node")
+	var _ids = []
+
+	//デーた的に更新（ノード）
+	for(var _elem of _elems){
+		node_list.some((_node)=>{
+			if(_node.id == Number(_elem.id)){
+				_node.content = _elem.value
+				_node.left = parseInt(_elem.style.left)
+				_node.top = parseInt(_elem.style.top)
+				_node.width = parseInt(_elem.style.width)
+				_node.height =parseInt(_elem.style.height)
+				_node.to = _elem.dataset.to
+				_node.from = _elem.dataset.from
+				return true
+			}
+		});
+		_ids.push(Number(_elem.id))
+	}
+	//親ノードをフォルダ化・ノード化
+	getElement_ByKeyValuePair_FromArrayOfObject(node_list,"id",current_dir_id).is_dir = (_ids.length>0) ? "true" : "false"
+	
+	//データ的に保存・更新（dir）
+	var _dir = getElement_ByKeyValuePair_FromArrayOfObject(dir_list, "id", current_dir_id)
+	_dir.name = presentDirName.value
+	_dir.contain_ids = _ids
+	_dir.moved_position = moved_position
+	_dir.def_node_size = {"width": Number(defWidthInfo.value), "height":Number(defHeightInfo.value) }
+	dir_list.some((dir)=>{ return ((dir.id==Number(_dir.id)) ? dir=_dir : false) })		//できてる…？怪しいんじゃ？
+}
+
+//ディレクトリをデータ的に作成
+function make_dir(_node){
+	
+	//データ作成
+	var _new_dir = {}
+	if(_node == "ROOT"){
+		console.log("%cdir作成（root）","color:orange")
+		_new_dir.id = 0
+		_new_dir.name = "root"
+		_new_dir.parent_id = null
+		_new_dir.contain_ids = []
+		_new_dir.moved_position = {"x":0,"y":0 }
+		_new_dir.def_node_size = {"width":40,"height":40}
+		
+		//微調整（def_sizeがsave_current_dirと干渉して合わないため、ルートdirを作るときだけここでそれを書き換える）
+		defWidthInfo.value = _new_dir.def_node_size.width
+		defHeightInfo.value = _new_dir.def_node_size.height
+	}else{
+		console.log("%cdir作成（"+_node.id+"）","color:orange")
+		_new_dir.id = Number(_node.id)
+		_new_dir.name = _node.id+''
+		_new_dir.parent_id = Number(_node.parent_id)
+		_new_dir.contain_ids = []
+		_new_dir.def_node_size = {"width":Number(defWidthInfo.value),"height":Number(defHeightInfo.value)}
+		_new_dir.moved_position = moved_position
+	}
+
+	//リスト追加
+	dir_list.push(_new_dir)
+}
+
+
+//指定idノードを、指定id dirから指定id dirに移動
+function move_node_dir_to_dir(_node_id, _from_id, _to_id){
+	//カレントdir保存やDOM整理など
+	if(_from_id == current_dir_id){
+		save_current_dir_and_node()
+		removeNodeAndLinesAndToFrom_FromDom(_node_id)				//DOM削除（ノードとlines）
+		document.getElementById(_to_id).dataset.is_dir = "true"		//DOM的にis_dir="true"にする
+	}
+	if(_to_id == current_dir_id){
+		save_current_dir_and_node()					
+	}
+	
+	//データ的に指定dirが無いなら作成
+	if(!getElement_ByKeyValuePair_FromArrayOfObject(dir_list, "id", Number(_from_id))){				//移動元dir
+		make_dir(getElement_ByKeyValuePair_FromArrayOfObject(node_list, "id", _from_id))
+	}
+	if(!getElement_ByKeyValuePair_FromArrayOfObject(dir_list, "id", Number(_to_id))){				//移動先dir
+		make_dir(getElement_ByKeyValuePair_FromArrayOfObject(node_list, "id", _to_id))
+	}
+	
+	
+	//dir_list編集
+	//移動元dir
+	dir_list.some((_dir)=>{			//移動元からは削除
+		if(_dir.id == Number(_from_id)){
+			_dir.contain_ids = _dir.contain_ids.some((v,i)=>{	//contain_ids削除
+				if(v==Number(_node_id)) _dir.contain_ids.splice(i,1)
+			})
+			return true
+		}
+	})
+	//移動先dir
+	dir_list.some((_dir)=>{			
+		if(_dir.id == Number(_to_id)){
+			_dir.contain_ids.push(Number(_node_id))						//contain_ids追加
+			return true
+		}
+	})
+	//自分dir
+	dir_list.some((_dir)=>{
+		if(_dir.id == Number(_node_id)){		//移動する自分がdirなら
+			_dir.parent_id = Number(_to_id)			//dir_listで親idを変える
+			return true
+		}
+	})
+	
+	
+	//node_list編集（データ的にノードの情報を最終編集（一斉ドロップ未対応な書法）
+	node_list.some((_node)=>{
+		if(_node.id == Number(_node_id)){
+			_node.from = "[]"					//from初期化
+			_node.to = "[]"						//to初期化
+			_node.left = xyBeforeDrag.x			//left（ドラッグ前の値にする）
+			_node.top =  xyBeforeDrag.y			//top（ドラッグ後の値にする）
+			_node.parent_id = Number(_to_id)	//parent変更
+			return
+		}
+	})
+	node_list.some((_node)=>{
+		if(_node.id == Number(_to_id)){
+			_node.is_dir = "true"
+		}
+	})
+}
+
+
+//指定ノードに紐づくlineとノード自身をDOM的に削除
+function removeNodeAndLinesAndToFrom_FromDom(_node_id){
+	//line削除
+	var _remove_lines = []
+	for(var _line of lineGroup.children){				//削除対象のlineを集める
+		if(Number(_line.dataset.to) == _node_id || Number(_line.dataset.from) == _node_id)_remove_lines.push(_line);
+	}
+	for(var _line of _remove_lines)removeElement(_line)	//削除
+	
+	//ほかノードのfromやtoから_node_idを削除
+	for(var _node of nodeGroup.children){
+		//fromから_node_fromを削除
+		var _from = eval(_node.dataset.from)
+		var _new_from = _from.filter((elem)=>{
+			return (elem != _node_id)
+		})
+		_node.dataset.from = "["+_new_from.join(",")+"]"
+		
+		//toから_node_idを削除
+		var _to = eval(_node.dataset.to)
+		var _new_to = _to.filter((elem)=>{
+			return (elem != _node_id)
+		})
+		_node.dataset.to = "["+_new_to.join(",")+"]"
+	}
+	
+	//ノード削除
+	removeElementById(_node_id)	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//----------------------------------------------------------------------------------------------------------------マウス以外イベント
+
+
+window.onresize = (e) =>{
+	scale = window.devicePixelRatio.toFixed(2);
+	var _adjustScale = 1/scale;
+	
+	//svgカンバスの大きさを拡大率の合わせて調整
+	if(scale != pre_scale){
+		console.log("%c拡大率変更によるリサイズ","color:green")
+		//カンバス表示幅
+		svgCanvas.setAttribute("width" , window.outerWidth*_adjustScale)
+		svgCanvas.setAttribute("height", window.outerHeight*_adjustScale)
+		//インフォグループ表示位置
+		infoGroup.style.width  = INFOGROUP_WIDTH*_adjustScale+"px"
+		infoGroup.style.top  =  10*_adjustScale + "px"
+		infoGroup.style.left =  (window.outerWidth-INFOGROUP_WIDTH-INFOGROUP_RIGHT_GAP)*_adjustScale +"px"
+		infoGroup.style.fontSize = INFOGROUP_FONTSIZE*_adjustScale+"px"
+		infoGroup.style.lineHeight = "1em"
+		rewriteStyle(cssOfInfoValuesClass,".infoValues","margin-left",20*_adjustScale+"px;")
+		rewriteStyle(cssOfInfoValuesClass,".infoValues","font-size",INFOGROUP_FONTSIZE*_adjustScale+"px;")
+
+		//事務
+		scaleDisp.innerText = scale
+		pre_scale = scale
+	}else{
+		console.log("%cウィンドウ幅変更によるリサイズ","color:green")
+
+		//カンバス表示幅
+		svgCanvas.setAttribute("width" , window.outerWidth*_adjustScale +"px")
+		svgCanvas.setAttribute("height", window.outerHeight*_adjustScale +"px")
+		//インフォグループ表示位置
+		infoGroup.style.left = window.outerWidth*_adjustScale - (Number(infoGroup.clientWidth) + Number(INFOGROUP_RIGHT_GAP)) +"px"
+	}
+}
+
+//キーボード管理（キーダウン）
+window.onkeydown=(e)=>{
+	switch(e.code){
+
+	//BODY上でスペースキーを押したら現在のマウス位置にノードを作成する
+		case "Space":
+			if(document.activeElement.tagName == "BODY"){
+				console.log("　　　　フォーカスが無い時にBODY上でスペース")
+				create_node("CREATE",null)
+			}
+			break
+	}
+}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+//---------------------------------------------------------------------------------------------------------------------------マウスイベント
+
+
+//画面選択禁止（カンバスをドラッグしてる時infoGroupが一気に選択されることあるため）
+document.onselectstart = (e)=>{
+	return false
+}
+
+
+//----------------------------------------------------------------------マウスホイール
+
+function onMouseWheelOnNode(e,_node){
+	if(e.deltaY<0){
+		console.log("　　　　ノード上でマウスホイールを上に回した");
+		
+		//ノードがすでにディレクトリならそれを読み込む
+		if(_node.dataset.is_dir == "true"){
+			console.log("%cdir読込（"+_node.id+"）","color:orange")
+			move_dir(_node.id)
+		}
+		
+		//そうでないなら新規ディレクトリ作成
+		else{
+			make_dir(getElement_ByKeyValuePair_FromArrayOfObject(node_list, "id", Number(_node.id)))
+			move_dir(_node.id)
+		}
+	}
+}
+
+document.onmousewheel=(e)=>{
+
+	//ディレクトリ遷移
+	if(e.deltaY>0){
+		console.log("　　　　document上でマウスホイールを下に回した");
+		if(current_dir_id == 0){
+			console.log("%c　　dir0なのでこれ以上戻れません","color:red");
+		}else{
+			console.log("%cdir読込（前）","color:orange");
+			move_dir(getParentIdDirById(current_dir_id))
+		}
+	}
+}
+
+
+
+//----------------------------------------------------------------------マウスダウン
+//ドラッグ管理（開始）
+svgCanvas.onmousedown=(e)=>{ 
+	console.log("　　　　画面ドラッグ開始")
+	draggingScreen = true	
+	
+	//もしinfoGroupにフォーカスがあるならﾉードにフォーカスを移す
+	var focusingElem = document.activeElement;
+	if(focusingElem.className == "infoValues"){
+		console.log("%c　　infoValuesからフォーカスを消す","color:skyblue");
+		
+		
+		focusingElem.blur()						//フォーカス外す
+	}
+}
+
+function onMouseDownOnNode(e,node){
+
+	if(e.buttons == LEFT_BUTTON){	//左クリックの場合
+		console.log("　　　　ノード上で左マウスダウン")
+		
+		//クリックした位置が、ノードの右端（ノードのleft + width）から16,18pxくらい左＆上によった部分以降ならOK（計算式は察してくれ！）
+		var resizeRegionX = (parseInt(node.style.left) + Number(node.clientWidth) + 5 ) - (e.clientX - moved_position.x);
+		var resizeRegionY = (parseInt(node.style.top) + Number(node.clientHeight) + 5) - (e.clientY - moved_position.y);
+		console.log("要素（l: "+node.style.left + " + w: "+node.clientWidth +"）+ 謎（5）- 画面（クラy: "+e.clientX + " 移動x: "+moved_position.x+"）= 右端"+resizeRegionX+"px");
+		console.log("要素（t: "+node.style.top + " + h: "+node.clientHeight +"）+ 謎（5）- 画面（クラy: "+e.clientY + " 移動y: "+moved_position.y+"）= 下端"+resizeRegionY+"px");
+			
+		//リサイズ部分へのクリックならばドラッグはしない
+		if(15 >= resizeRegionX && 15 >= resizeRegionY){
+			console.log("　　　　右下のリサイズ範囲をドラッグ開始");
+			
+			//ここちょっと変なところあるから後で余裕あったら直して（上下の順番が、クリックしたのが上に来るのはいいんだけど、前回選択されているのが無駄に奥に行っちゃう。どうすればいいんだろう。
+			//インデックス変更
+			if(focusingNode)　focusingNode.style.zIndex = 1|0 
+			node.style.zIndex = 2|0
+			focusingNode = node
+			nodeResizing = true
+			
+			//使うデータ
+			toForResize = node.getAttribute("data-to")
+			fromForResize = node.getAttribute("data-from")
+		}
+		//非リサイズ部分へのクリックならばドラッグ開始
+		else{
+			console.log("　　　　リサイズ範囲以外をドラッグ開始");
+			//上下関係管理
+			if(focusingNode){ focusingNode.style.zIndex = 1|0　}
+			
+			//ここも↑のと同じタイプの若干の不具合ある（上下の順番が、クリックしたのが上に来るのはいいんだけど、前回選択されているのが無駄に奥に行っちゃう。どうすればいいんだろう。
+			//スタイル
+			draggingNodeL = focusingNode = e.target;
+			draggingNodeL.style.left = getCssProperty(draggingNodeL.id,"left")
+			draggingNodeL.style.top = getCssProperty(draggingNodeL.id,"top")
+			draggingNodeL.style.zIndex = 2|0
+			
+			//移動前座標保持
+			xyBeforeDrag = {"x": parseInt(draggingNodeL.style.left), "y": parseInt(draggingNodeL.style.top)}
+		}
+		
+	
+	//ノード右ドラッグフラグ立てる
+	}else if(e.buttons == RIGHT_BUTTON){	//右クリックの場合
+		console.log("　　　　ノード上で右マウスダウン")
+		draggingNodeR =  e.target					//右ドラッグ開始処理
+		draggingNodeR.style.background = "orange"	//スタイル
+	}
+}
+
+
+
+
+//----------------------------------------------------------------------------マウスムーブ
+//ドラッグ管理（ドラッグ中）
+window.onmousemove=(e)=>{
+	
+	//画面ドラッグ中
+	if(draggingScreen){	//スクリーンドラッグ中
+		console.log("　　　　画面ドラッグ中");
+		moved_position  = {"x": (moved_position.x + e.movementX), "y":(moved_position.y + e.movementY) }
+		
+		//描画移動処理は4回に1回に抑えてCPU負荷を大幅節約（ただし最後これを超えないで終わってしまった時のために、mouseupした時に再び一応下の処理をしている）
+		if(fpsCnt != 4|0){
+			fpsCnt=(fpsCnt+1)|0
+			return
+		}
+		fpsCnt=0|0
+		
+		//描画グループ達をtransform属性つけて移動させる
+		svgMainScreen.setAttribute("transform","translate("+moved_position.x +","+moved_position.y +")")
+		rewriteStyle(cssOfNodeClass,".node","transform","translate("+moved_position.x +"px,"+moved_position.y +"px);")
+	}
+
+	//ノード左ドラッグ中
+	else if(draggingNodeL){	
+		console.log("　　　　ノード上を左ドラッグ中")
+		
+		//事務
+		if(e.buttons == 0){ return }
+		e.preventDefault()
+		draggingNodeL.style.zIndex　=　0	//他のノードにドロップできるように今ドラッグ中のノードをほかノードより奥に表示させる
+		
+		//ノード移動（マウスとともに左ドラッグで移動）
+		var posX = (parseInt(draggingNodeL.style.left) + e.movementX)|0;
+		var posY = (parseInt(draggingNodeL.style.top) + e.movementY)|0;
+		draggingNodeL.style.left = posX+"px"
+		draggingNodeL.style.top = posY+"px"
+
+		//ノード移動とともに、lineも合わせて移動（煩雑だけどとにかくできてる）
+		var centerX = posX+Number(draggingNodeL.clientWidth)/2		//ノードの中心座標X
+		var centerY = posY+Number(draggingNodeL.clientHeight)/2		//ノードの中心座標Y
+		for(var toNodeId of eval(draggingNodeL.getAttribute("data-to"))){
+			var toLines = lineGroup.querySelectorAll('[data-to="'+toNodeId+'"][data-from="'+draggingNodeL.id+'"')
+			for(var toLine of toLines){
+				toLine.setAttribute("x1",centerX)
+				toLine.setAttribute("y1",centerY)
+			}
+		}
+		for(var fromNodeId of eval(draggingNodeL.getAttribute("data-from"))){
+			var fromLines = lineGroup.querySelectorAll('[data-from="'+fromNodeId+'"][data-to="'+draggingNodeL.id+'"')
+			for(var fromLine of fromLines){
+				fromLine.setAttribute("x2",centerX)
+				fromLine.setAttribute("y2",centerY)
+			}
+		}
+		
+	}else if(draggingNodeR){	//ノード右ドラッグ中
+	}else if(nodeResizing){
+		console.log("　　　　ノード上をリサイズ中")
+	
+		//ノードの線の座標変更
+		var focusingNode = e.target
+		var posX = (parseInt(focusingNode.style.left) + e.movementX)|0
+		var posY = (parseInt(focusingNode.style.top) + e.movementY)|0
+
+		//ノード移動とともに、lineも合わせて移動（煩雑だけどとにかくできてる）
+		var centerX = (focusingNode.style.width == "") ? (posX+NODE_DEF_REAL_R)|0 : (posX+Number(focusingNode.clientWidth)/2)|0		//動かしてるノードの中心座標X（widthがあるならそれの半分を引き、ないならデフォの半径を引く）
+		var centerY = (focusingNode.style.height == "") ? (posY+NODE_DEF_REAL_R)|0 : (posY+Number(focusingNode.clientHeight)/2)|0	//同上
+		if(toForResize.length){
+			for(var toNodeId of toForResize){
+				var toLines = lineGroup.querySelectorAll('[data-to="'+toNodeId+'"][data-from="'+focusingNode.id+'"')
+				for(var toLine of toLines){
+					toLine.setAttribute("x1",centerX)
+					toLine.setAttribute("y1",centerY)
+				}
+			}
+		}
+		if(fromForResize.length){
+			for(var fromNodeId of fromForResize){
+				var fromLines = lineGroup.querySelectorAll('[data-from="'+fromNodeId+'"][data-to="'+focusingNode.id+'"')
+				for(var fromLine of fromLines){
+					fromLine.setAttribute("x2",centerX)
+					fromLine.setAttribute("y2",centerY)
+				}
+			}
+		}
+		
+	}else{	//何もしてない単なる移動の時
+		now = { "x":e.clientX, "y":e.clientY }		//現在のマウス位置を保存
+	}
+}
+
+
+//------------------------------------------------------------------マウスオーバー
+function onMouseOverOnNode(e){
+	console.log("　　　　ノードへのマウスオーバー");
+	
+	//toNodeフラグ立てる
+	if(draggingNodeL){
+		console.log("　　　　ノードを左ドラッグ中になんらかのノードにマウスオーバー")
+		if(draggingNodeL.id != e.target.id){			//同じノードへのmouseoverでないなら
+			canDroppedNode = e.target						//canDroppedNodeに記録
+			canDroppedNode.style.background = "blue"		//スタイル
+		}
+	}
+
+	//canDroppedNodeフラグ立てる
+	else if(draggingNodeR){
+		console.log("　　　　ノードを右ドラッグ中になんらかのノードにマウスオーバー")
+		if(e.target != draggingNodeR){			//自分へのmouseoverでないなら
+			toNode = e.target						//toNodeに記録
+			toNode.style.background = "pink"		//スタイル
+		}
+	}
+}
+
+
+
+
+//-------------------------------------------------------------------マウスアウト（ノードからのマウスアウト）
+
+function onMouseOutOnNode(e){
+	
+	//canDroppedNodeフラグ下ろす
+	if(draggingNodeL){
+		console.log("　　　　ノードを左ドラッグ中になんらかのノードからマウスアウト")
+		if(canDroppedNode){										//ドロップ可能ノードがあったなら
+			canDroppedNode.style.background = "rgb(0,0,0,0.8)"		//canDroppedNodeの色を戻す
+			canDroppedNode = null									//canDroppedNodeをオフにする
+		}
+	}
+
+	//toNodeフラグ下ろす
+	else if(draggingNodeR){
+		console.log("　　　　ノードを右ドラッグ中になんらかのノードからマウスアウト")
+		if(e.target != draggingNodeR){					//自分からのアウトでないなら
+			toNode.style.background = "rgb(0,0,0,0.8)"		//toNodeの色を戻す
+			toNode = null									//toNodeをオフにする
+		}
+	}
+	
+	else{
+		console.log("　　　　通常時に何らかのノードからマウスアウト")
+	}
+}
+
+
+
+
+//------------------------------------------------------------------------------マウスアップ
+
+//ドラッグ管理（終了）
+window.onmouseup=(e)=>{
+
+	//画面ドラッグ終了なら、そのフラグを下ろし、画面移動を調整する
+	if(draggingScreen){					
+		console.log("　　　　画面ドラッグ終了")
+		draggingScreen = false		
+
+		//描画グループ達をtransform属性つけて移動させる（最終調整）
+		svgMainScreen.setAttribute("transform","translate("+moved_position.x +","+moved_position.y +")")
+		rewriteStyle(cssOfNodeClass,".node","transform","translate("+moved_position.x +"px,"+moved_position.y +"px);")
+	}
+	
+	//ノード左ドラッグ終了なら、そのフラグを下ろし、ノードを移動させる
+	else if(draggingNodeL){			
+		console.log("　　　　ノード左ドラッグ終了")
+		
+		//もし他のノードにもmouseonしているのならば、それの中にノードを移動させる
+		if(canDroppedNode){
+			console.log("%c　　ノード移動（"+draggingNodeL.id+"→"+canDroppedNode.id+"）","color:green")
+			
+			//ノード移動
+			move_node_dir_to_dir(draggingNodeL.id, current_dir_id, canDroppedNode.id)
+			
+			//調整
+			style_for_dir(canDroppedNode)						//フォルダとして色つける
+			canDroppedNode.style.background = "rgb(0,0,0,0.8)"	//背景色を戻す
+			canDroppedNode = null								//フラグオフ
+			xyBeforeDrag = null									//ドラッグ前座標
+		}
+		
+		draggingNodeL.style.zIndex = 2		//前後を戻す
+		draggingNodeL = null				//フラグオフ
+	}
+	
+	//ノードの右ドラッグ終了なら、スタイルを戻しフラグを下ろす
+	else if(draggingNodeR){			
+		console.log("　　　　ノード右ドラッグ終了")
+		draggingNodeR.style.background = "rgb(0,0,0,0.8)"	//draggingNodeRの色を戻す
+		draggingNodeR = null								//フラグ下ろす
+		if(toNode){											//toNodeが記録されてるなら
+			toNode.style.background = "rgb(0,0,0,0.8)"			//toNodeの色を戻す
+			toNode = null										//フラグ下ろす
+		}
+	}
+	
+	//ノードのリサイズ領域の左ドラッグ終了なら、そのフラグを下ろす
+	else if(nodeResizing){
+		console.log("　　　　ノードリサイズ終了")
+		nodeResizing = false
+	}
+	
+	now = { "x":e.clientX, "y":e.clientY }		//現在のマウス位置を保存
+}
+
+function onMouseUpOnNode(e,node){
+
+	//ノード上で右ボタンがアップし、toNodeが記録されてるなら、線を接続
+	if(e.button == RIGHT_BUTTON){			
+		if(toNode){				
+			console.log("　　　　ノード上でマウスアップ")
+			//データ管理
+			//接続先の「from」を設定
+			var _fromNodes = eval(node.dataset.from)
+			_fromNodes.push(Number(draggingNodeR.id))
+			_fromNodes = _fromNodes.filter((x,i,self)=>{return self.indexOf(x) === i;})	//重複弾く
+			node.dataset.from = "["+_fromNodes.join(",")+"]";
+			//接続元の「to」を設定
+			var _toNodes = eval(draggingNodeR.dataset.to)
+			_toNodes.push(Number(node.id))
+			_toNodes = _toNodes.filter((x,i,self)=>{return self.indexOf(x) === i;})	//重複弾く
+			draggingNodeR.dataset.to = "["+_toNodes.join(",")+"]"
+			
+			//線を作成
+			var match = lineGroup.querySelectorAll('[data-from="'+draggingNodeR.id+'"][data-to="'+node.id+'"],[data-from="'+node.id+'"][data-to="'+draggingNodeR.id+'"]')
+			if(match.length){ 
+				console.log("%cこの線はすでに存在しています","color:red")
+			}else{
+				make_line(draggingNodeR, node)
+			}
+		}
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//-----------------------------------------------------------------------------------------------------------------ユーティリティAPI
+
+//指定IDのcssプロパティの値をゲット
+function getCssProperty(_elmId, _property){
+	var _elem = document.getElementById(_elmId)
+	return window.getComputedStyle(_elem,null).getPropertyValue(_property)
+}
+
+
+//指定スタイル要素の、指定セレクタ指定プロパティにあるvalueを変える
+function rewriteStyle(_cssElem,_selector,_property,_value){
+	//事務
+	var css = _cssElem.innerText
+	var matchSelectorAndContent = new RegExp(_selector+" ?{.*(.*\n)*?}")
+	var contents = css.match(matchSelectorAndContent)[0]
+
+	//書き換え文章作成
+	if(contents.indexOf(_property) != -1){
+		var regExp = new RegExp("(?<="+_property+" *:).*")
+		var result = contents.replace(regExp,_value)
+	}else{
+		var result = contents.replace("}","\t"+_property+":"+_value+";\n}")
+	}
+	
+	//書き換え
+	_cssElem.innerText = css.replace(matchSelectorAndContent,result)
+}
+
+//指定IDのcssのセレクタのプロパティの値を返す
+function getStyleValue(id,_selector,_property){
+	//事務
+	var elem = document.getElementById(id);
+	var css = elem.innerText;
+	var matchSelectorAndContent = new RegExp(_selector+" ?{.*(.*\n)*?}")
+	var contents = css.match(matchSelectorAndContent)[0];
+	
+	//書き換え文章作成
+	if(contents.indexOf(_property) != -1){
+		var regExp = new RegExp("(?<="+_property+" *:).*(?= *;)")
+		var result = contents.match(regExp)
+		return result[0];
+	}else{
+		console.log("%c指定プロパティがありません","color:red")
+		return;
+	}	
+}
+
+//指定IDの要素をDOMから削除
+function removeElementById(id){
+	var elem = document.getElementById(id)
+	elem.parentNode.removeChild(elem)
+}
+
+//要素をDOMから削除
+function removeElement(elem){
+	elem.parentNode.removeChild(elem)
+}
+
+//指定のオブジェクトの配列から、指定のキーが指定の値になっている要素を返す（無かったらnull、あったら要素を返す）
+function getElement_ByKeyValuePair_FromArrayOfObject(array,key,value){
+	return array.find((obj)=>{ return ((obj[key]==value) ? obj : false)})
+}
+
+//dir idから親dirのIDを返す
+function getParentIdDirById(_dir_id){
+	return getElement_ByKeyValuePair_FromArrayOfObject(dir_list,"id",_dir_id).parent_id
+}
+
+//ルートから指定dirまでのパスを求める
+function getDirPathFromRootTo(_to_dir){
+	var _path = []
+	while(1){
+		_path.push(_to_dir.name)
+		if(_to_dir.id == 0) return _path.reverse()
+		_to_dir = getElement_ByKeyValuePair_FromArrayOfObject(dir_list, "id", _to_dir.parent_id)
+	}
+}
+
+//ノードや線を削除
+function del_screen(){
+	nodeGroup.innerHTML = ""	//ノード
+	lineGroup.innerHTML = ""	//線
+}
+
+
+function style_for_dir(_node){
+	if(_node.dataset.is_dir == "true"){		//is_dirがtrueならディレクトリスタイル
+		_node.style.borderColor = "teal"
+	}else{									//そうでないなら通常ノードスタイル
+		_node.style.borderColor = "white"
+	}
+}
+
+//入力対象のvalueを小文字数値のみに制限する（input type="tell"へのoninput時のみに使える？確かめてない）
+function limitValueOnlySmallNum(_e){
+	//半角にできるものは半角にする
+    var halfVal = _e.target.value.replace(/[！-～]/g,(tmpStr)=>{
+			return String.fromCharCode(tmpStr.charCodeAt(0) - 0xFEE0)	// 文字コードをシフト
+		}
+    )
+	
+	//半角以外のものを削除
+	_e.target.value = halfVal.replace(/[^0-9]/g, '')  
+}
+
+
+//初期化
+init()
+
+
+</script>
+
+</html>
