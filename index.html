@@ -246,6 +246,12 @@ body{
 		・inputの幅をもう少し狭めて
 		・編集可能なやつとそうでないやつの見分けがつかないのでつくようにしたほうがいいかな
 		
+	・フォーカスのオンオフとか調整しようがある
+		・例えば右ドラッグ完了時
+			・直前にノードを作成していたらフォーカスは失う
+			・直前にノードに文字を打っていたならそこにフォーカスが戻る
+		・後でここはどうにかする
+		
 
 ＜あえてやらない＞
 	■ノードの自動リサイズ（文字の量により自動で高さをmax-height上限まで広げる）
@@ -1326,6 +1332,7 @@ window.onmouseup=(e)=>{
 			toNode.style.background = "rgb(0,0,0,0.8)"			//toNodeの色を戻す
 			toNode = null										//フラグ下ろす
 		}
+		
 	}
 	
 	//ノードのリサイズ領域の左ドラッグ終了なら、そのフラグを下ろす
@@ -1362,6 +1369,9 @@ function onMouseUpOnNode(e,node){
 			}else{
 				make_line(draggingNodeR, node)
 			}
+			
+			//フォーカスオフ
+			document.activeElement.blur()
 		}
 	}
 }
