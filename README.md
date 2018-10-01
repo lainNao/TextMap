@@ -7,7 +7,7 @@ TextMap
 <https://neji205.github.io/TextMap/>
 
 ## 再生されるかわからないデモ動画
-![result](https://github.com/neji205/TextMap/example.gif)
+![result](https://github.com/neji205/TextMap/blob/master/example.gif)
 
 ## 用途
 * プロット作成時にて、プロットの分岐をいろいろと思いつくけれどもテキスト上じゃその分岐が管理しづらいからマインドマップ形式で管理したいけれども、他のマインドマップがなんか使いづらい…と感じた時
