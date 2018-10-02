@@ -73,6 +73,14 @@ body{
 				line-height:1em;
 				padding:0; 
 			}
+			#defFontSizeInfo{
+				margin-right:5px;
+				border:none;
+				background-color:rgb(0,0,0,0);
+				height:1em;
+				line-height:1em;
+				padding:0; 
+			}
 				#downloadJson{
 					color:teal;
 				}
@@ -156,6 +164,9 @@ body{
 					<br/>
 					<span>[Style]</span>
 					<br/>
+					<span>font size(10~):</span><br/>
+					<input type="tel" id="defFontSizeInfo" class="infoValues" value="10"></input>
+					<br/>
 					<span>node default width(30~):</span><br/>
 					<input type="tel" id="defWidthInfo" class="infoValues" value="50"></input>
 					<br/>
@@ -207,6 +218,8 @@ body{
 		・これは無理やろ。直せたら神
 		・これがバレるの辛いから最初からノードや文字の大きさを自分用にキャリブレーションしておくかな。調整してこうなりたくないし
 
+	・defHeightInfoとかdefWidthInfoとかのelemを取得せずに直接IDでoninputとかやってるけどできてるのはなぜ…？
+	
 ＜追加機能案＞
 	・ノード削除機能をつける（どんな動作に紐付けるかは…どうしようね…）
 		・指定idが現在のdomにあるならdomからも消す
@@ -355,6 +368,7 @@ var mindMapName = document.getElementById("mindMapName");				//マインドマ�
 var presentDirName = document.getElementById("presentDirName");			//現在のディレクトリ名
 var downloadJson = document.getElementById("downloadJson");				//ダウンロードボタン
 var dirPath = document.getElementById("dirPath");						//パス
+var defFontSizeInfo = document.getElementById("defFontSizeInfo")
 
 //メインデータ
 var node_list			//作成されたノードが入っているリスト
@@ -629,11 +643,16 @@ defHeightInfo.onblur = (_e)=>{
 }
 
 
-
-
-
-
-
+//フォントサイズ関係
+defFontSizeInfo.onkeydown=(e)=>{
+	if(e.key == "Enter") document.activeElement.blur()
+}
+//10以下なら10にする
+defFontSizeInfo.onblur=(_e)=>{
+	if(_e.target.value == "" || Number(_e.target.value) < 10) _e.target.value = 10
+	rewriteStyle(cssOfNodeClass,".node","font-size",_e.target.value+"px;");		//移動
+	
+}
 
 
 
