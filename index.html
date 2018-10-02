@@ -373,6 +373,7 @@ var canDroppedNode		//他のノードに入れられる側のノード
 var nodeResizing		//ノードリサイズ中かどうか
 var xyBeforeDrag={"x":0,"y":0}	//ドラッグ開始時のドラッグ対象の座標（ほかノードにドロップした時に再現するため）
 var draggingScreen		//スクリーンドラッグ中フラグ
+var elemBeforeRDrag
 //線
 var fromForResize		//リサイズノードから伸びた線
 var toForResize			//リサイズノードへ伸ばされた線
@@ -1138,6 +1139,9 @@ function onMouseDownOnNode(e,node){
 	//ノード右ドラッグフラグ立てる
 	}else if(e.buttons == RIGHT_BUTTON){	//右クリックの場合
 		console.log("　　　　ノード上で右マウスダウン")
+
+		elemBeforeRDrag = document.activeElement	//右ドラッグ開始前にフォーカスが合ってた要素
+		console.log(elemBeforeRDrag)
 		draggingNodeR =  e.target					//右ドラッグ開始処理
 		draggingNodeR.style.background = "orange"	//スタイル
 	}
@@ -1377,8 +1381,12 @@ function onMouseUpOnNode(e,node){
 				make_line(draggingNodeR, node)
 			}
 			
-			//フォーカスオフ
-			document.activeElement.blur()
+			//フォーカスを戻す（カンバスかノードか、右ドラッグ前にあってた方に戻す）
+			if(elemBeforeRDrag.tagName == "BODY"){
+				document.activeElement.blur()
+			}else{
+				elemBeforeRDrag.focus()
+			}
 		}
 	}
 }
