@@ -1230,7 +1230,6 @@ function onMouseDownOnNode(e,node){
 		console.log("　　　　ノード上で右マウスダウン")
 
 		elemBeforeRDrag = document.activeElement	//右ドラッグ開始前にフォーカスが合ってた要素
-		console.log(elemBeforeRDrag)
 		draggingNodeR =  e.target					//右ドラッグ開始処理
 		draggingNodeR.style.background = "orange"	//スタイル
 	}
@@ -1450,23 +1449,56 @@ function onMouseUpOnNode(e,node){
 	if(e.button == RIGHT_BUTTON){			
 		if(toNode){				
 			console.log("　　　　ノード上でマウスアップ")
-			//データ管理
-			//接続先の「from」を設定
-			var _fromNodes = eval(node.dataset.from)
-			_fromNodes.push(Number(draggingNodeR.id))
-			_fromNodes = _fromNodes.filter((x,i,self)=>{return self.indexOf(x) === i;})	//重複弾く
-			node.dataset.from = "["+_fromNodes.join(",")+"]";
-			//接続元の「to」を設定
-			var _toNodes = eval(draggingNodeR.dataset.to)
-			_toNodes.push(Number(node.id))
-			_toNodes = _toNodes.filter((x,i,self)=>{return self.indexOf(x) === i;})	//重複弾く
-			draggingNodeR.dataset.to = "["+_toNodes.join(",")+"]"
 			
 			//線を作成
 			var match = lineGroup.querySelectorAll('[data-from="'+draggingNodeR.id+'"][data-to="'+node.id+'"],[data-from="'+node.id+'"][data-to="'+draggingNodeR.id+'"]')
 			if(match.length){ 
-				console.log("%cこの線はすでに存在しています","color:red")
+				var _from = eval(match[0].dataset.from)
+				var _to = eval(match[0].dataset.to)
+
+				//datasetからに削除
+				var _from_of_dragged = eval(draggingNodeR.dataset.from)
+				//ドラッグしたノードから伸びていた場合、そちらのfromから_fromを、ドロップ先のtoから_toを消す
+				if(_from_of_dragged.indexOf(_from) >= 0){
+					_from_of_dragged.some((v,i)=>{if(v==_from) _from_of_dragged.splice(i,1)})
+					draggingNodeR.dataset.from = "["+_from_of_dragged+"]"
+					var _to_of_dropped = eval(e.target.dataset.to)
+					_to_of_dropped.some((v,i)=>{if(v==_to) _to_of_dropped.splice(i,1)})
+					e.target.dataset.to = "["+_to_of_dropped+"]"
+				}
+				//ドラッグしたノードへと伸びていた場合、そちらのtoから_toを、ドロップ先のfromから_fromを消す
+				else{
+					var _to_of_dragged = eval(draggingNodeR.dataset.to)
+					_to_of_dragged.some((v,i)=>{if(v==_to) _to_of_dragged.splice(i,1)})
+					draggingNodeR.dataset.to = "["+_to_of_dragged+"]"
+					var _from_of_dropped = eval(e.target.dataset.from)
+					_from_of_dropped.some((v,i)=>{if(v==_from) _from_of_dropped.splice(i,1)})
+					e.target.dataset.from = "["+_from_of_dropped+"]"
+				}
+
+				//線削除
+				removeElement(match[0])
+				console.log("%c　　線削除","color:green")
+				
+				//fromやtoからも消さないとね
+				
+				//というか今までもここに来た時from toが同じのになるというバグあったっぽいな。片方にだけしか無いのが正規なのに
+				//なおすか…
 			}else{
+			
+				//データ管理
+				//接続先の「from」を設定
+				var _fromNodes = eval(node.dataset.from)
+				_fromNodes.push(Number(draggingNodeR.id))
+				_fromNodes = _fromNodes.filter((x,i,self)=>{return self.indexOf(x) === i;})	//重複弾く
+				node.dataset.from = "["+_fromNodes.join(",")+"]";
+				//接続元の「to」を設定
+				var _toNodes = eval(draggingNodeR.dataset.to)
+				_toNodes.push(Number(node.id))
+				_toNodes = _toNodes.filter((x,i,self)=>{return self.indexOf(x) === i;})	//重複弾く
+				draggingNodeR.dataset.to = "["+_toNodes.join(",")+"]"
+			
+				console.log("%c　　線作成","color:green")
 				make_line(draggingNodeR, node)
 			}
 			
