@@ -7,7 +7,6 @@ Copyright (c) 2018 @popoponnponpopo
 This software is released under the MIT License.
 http://opensource.org/licenses/mit-license.php
 -->
-
 <html lang="ja">
 <head>
 <title>TextMap</title>
@@ -94,6 +93,11 @@ body{
 	stroke-weight:2;
 	stroke:orange;
 }
+.node:focus{
+	z-index:2;
+}
+
+
 </style>
 <style type="text/css" id="cssOfInfoValuesClass">
 .infoValues{	
@@ -111,6 +115,7 @@ body{
 <style type="text/css" id="cssOfNodeClass">
 .node{
 	position:absolute;
+	transform-origin:center;
 	outline:none;
 	font-size:10px;
 	min-width:30px;
@@ -119,10 +124,9 @@ body{
 	height:40px;
 	padding:5px;
 	background-color:rgb(0,0,0,0.8);
-	border:solid;
 	border-radius:10px;
 	border-color:white;
-	border-style:dashed;
+	border-style:solid;
 	border-width:1px;
 	color:white;
 	z-index:2;
@@ -201,150 +205,6 @@ body{
 
 
 
-/*
-★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-＜説明＞
-	・ノード作成		//スペースキー
-	・ノード移動		//ノードを左ドラッグ
-	・ノード接続		//ノードを右ドラッグ
-	・ノードに入る		//マウススクロールアップ（ノードの上で）
-	・ノードを出る		//マウススクロールダウン
-
-＜バグ＞	
-	・なぜかデフォ位置でノード作った後、別位置にマウス動かしてノード作ると最初のが消えるバグある
-		というかそれより酷くて、infoGroupの表示も消えたわ。なんだこれ。付け焼き刃でもいいから処理したいわ
-		
-	・ブラウザ拡大率が100%以外のときにサイトに入ってきたら（またはf5で更新したらも？）infoGroupの表示がバグる
-		・これは無理やろ。直せたら神
-		・これがバレるの辛いから最初からノードや文字の大きさを自分用にキャリブレーションしておくかな。調整してこうなりたくないし
-
-	・defHeightInfoとかdefWidthInfoとかのelemを取得せずに直接IDでoninputとかやってるけどできてるのはなぜ…？
-	
-＜追加機能案＞
-	・ノード削除機能をつける（どんな動作に紐付けるかは…どうしようね…）
-		・指定idが現在のdomにあるならdomからも消す
-		・dir_listのcontain_idsからも消す
-		・線とかも消す
-		的な処理ってすでにあったよな？あれをやればいいのでは？使いまわせる予感すぐにできそうな予感
-	
-	・線を削除する機能
-		・これは必須に近い気がする
-		
-	・間違って削除したノードを復活させる、戻る機能あればいいけど、これ大変だな…
-		・消すな！！
-		・ゴミ箱ノードでも各自で作れや！！！ﾜﾗｵ
-	
-	・右ドラッグしたら範囲内複数選択（またはctrl + 左クリックでも複数選択可能）
-		・一斉選択されてるのを左ドラッグしたら一気に動かせる
-			・複数選択状態でノードにド左ロップした場合、そのノード内に一斉に入る
-		・複数選択状態でノードに右ドロップした場合、そのノードに全部線が繋がる
-
-	・データ防御機能
-		・あと間違って更新ボタン押しちゃってマインドマップが消えちゃった！うわー！ってならないように、f5押したら強制保存するとか、f5をpreventDefaultするとか、確認画面出すとかしたほうがいい
-
-	・接続元と先を明らかにする
-		・フォーカス合ってる時にfromからtoへと丸図形が移動するとかなんかするようにしたほうが本来いい（on/off可能にして）
-		
-＜スタイルの提案＞
-
-	・どっかにエクスプローラーを出せるようにして、そっから移動できるようにする（特にファイルドロップした時にそっから選択できるほうがいいかも）
-		・エクスプローラー表示ボタンを押したら右からフォン…ってモーダルウィンドウ上のエクスプローラーが出てくるとか
-			けっこう階層深くなる場合もあるから、そのモーダルウィンドウはど真ん中に出ていいと思う。（いや、左側とかのほうがいいか）
-
-	・ウィンドウのあれこれ
-		・ズームしたらデフォだと左上にズームされるから、マウス位置にズームされるように、「moveTo(x,y)」で無理やりマウス位置に移動させるようにできないかな
-
-	・もっとinfoGroupにいろいろ表示させていいと思う
-		[Style]
-			・可変文字サイズinput
-
-	・その他infoValuesのあれこれ
-		・inputの幅をもう少し狭めて
-		・編集可能なやつとそうでないやつの見分けがつかないのでつくようにしたほうがいいかな
-		
-	・フォーカスのオンオフとか調整しようがある
-		・例えば右ドラッグ完了時
-			・直前にノードを作成していたらフォーカスは失う
-			・直前にノードに文字を打っていたならそこにフォーカスが戻る
-		・後でここはどうにかする
-
-	・ctrl + マウスホイールすると拡大縮小できるけど、その間にノードにマウスが乗るとそこに入ったり、というか出たりしちゃうから、そこを防止する
-		・マウスホイールの関数内でctrl押してる時はにそこらへんを全部無効化する
-		
-	・ドラッグ中にマウス周辺に黄色い半透明の円出すのはいいと思う
-
-＜あえてやらない＞
-	■ノードの自動リサイズ（文字の量により自動で高さをmax-height上限まで広げる）
-		・なぜやらないのかは、総合的に考えて「勝手にmax-heightまで広がると、形を好きにスタイリングしづらい」から
-		・個人的に、文字を打ち込みやすいかどうかより、スタイリングのしやすさ（ノードお大きさを自分で制御できること）の方が大事
-		・考えたけど辞めた
-
-	■dirでないノードにも名前をつけること
-		・contentのテキストに加えて別の文字列を入力するのは、ちょっとシンプルじゃないと思った
-		・名前をつけられるのはあくまでもpath表示の利便性を上げるためであってノード時代に名前をつけるのはちょっと違うかな微妙だけど、と思った
-		・いやノードに名前つけれたほうが簡潔にはなりそうだけど、でもそしたら各ノードに名前つけたくなる気がして…
-		・基本的にノードは無名で、dir化したものだけ束ねる際の名前を持つ感じにしてるけど、うーんそれでいいのかな
-		・この仕様変えたら、互換性失われるな。データ変換プログラム作ってjsonを書き直せば移行できなくもないけど。
-
-	■リサイズ直後のワンクリック無反応への対処
-		・resize直後に右上に○～○的な表示残っている状態だとクリックイベントが一回無効になるから、それを防止するために一つ無理やりクリックイベント発火させるかな
-		・と思っていたんだけど、無理だわ。
-		・いやできるか。nowResizingがtrueの時にマウスが画面上を動かされたらワンクリック発火するとか。
-		・できるっぽいかな？
-		・でもやっぱりやんないでいいわ。一瞬だし。いらんわ。
-
-＜プログラム改善案＞
-	・transformしてるの個別にやってるから、transformする要素を統一しよう一つに。そうしたら無駄な処理がたぶんだいぶ減る。まあこれは後ででいいかな
-	・Numberが乱立してる（parseIntは「px」を無視して数値化するために有効活用しているからいいとして。）
-	・|0が乱立してる
-	・あともっと右側に表示を出す
-	・コーディング規約がバラバラすぎてる
-	
-＜メモ＞	
-	・mousedragするだけで　dir_listのmoved_positionが勝手に各dirが連動して書き換わりまくるというバグがあったけど、
-			moved_position  = {"x": (moved_position.x + e.movementX), "y":(moved_position.y + e.movementY) }
-		とすることで書き換わりまくるという症状は消えた。
-		でもドラッグするとやっぱりdir_listの中身が、値は変わらないけど、同じ値が入れ替わりまくってるのは分かる（代入されてる時の色変化するから）
-		ってことはやっぱmoved_positionが書き換わると強制的にdir_listにも繋がる…？なんだこれは
-		ドラッグする度にいちいちdir_list更新されたら処理無駄だからこれ解消したいな…
-
-＜保存してるデータ構造＞
-{
-	node_list:[
-		{
-			id:			ノードID
-			parent_id	所属する親ノードid（id 0ならこれはnullとする）
-			is_dir:		trueかfalse
-			content:	テキスト内容
-			left:
-			top:
-			width:
-			height:
-			to:		
-			from:		
-	
-		}
-	],
-	dir_list:[
-		{
-			id:								ノードidを入れる
-			name:							ディレクトリ名を任意で入れる（デフォはノードid）
-			parent_id:						親ノードid
-			contain_ids:[]					保持してるノード達のid
-			moved_position:					moved_positionを入れる
-			def_node_size:{width:,height:}	そのdirのデフォルトのノードサイズ
-		}
-	],
-	max_id:最高ID（ダウンロード時にnode_id_cntを入れておく）
-}
-
-
-
-
-
-		
-	
-	*/
 
 
 //変数
@@ -378,6 +238,13 @@ var dirs = []			//作成した全dirの情報
 var current_dir_id		//所属ディレクトリID（初期値rootは0）
 var scale				//画面拡大率
 var pre_scale			//前回の画面拡大率
+var pressingTab 		//タブを押してる途中フラグ
+//タブ移動関連
+var current_node_info = []
+var current_node_info_v = []
+var current_node_info_h = []
+var v_sorted
+var h_sorted 
 //ノード
 var draggingNodeL		//左ドラッグ中ノード
 var draggingNodeR		//右ドラッグ中ノード
@@ -388,6 +255,7 @@ var nodeResizing		//ノードリサイズ中かどうか
 var xyBeforeDrag={"x":0,"y":0}	//ドラッグ開始時のドラッグ対象の座標（ほかノードにドロップした時に再現するため）
 var draggingScreen		//スクリーンドラッグ中フラグ
 var elemBeforeRDrag
+var pre_focused_node 	//前回フォーカスがあたってたノード
 //線
 var fromForResize		//リサイズノードから伸びた線
 var toForResize			//リサイズノードへ伸ばされた線
@@ -490,6 +358,7 @@ function init_data(){
 	node_id_cnt = 1			//ノードIDカウンタ
 	dir_list = []			//ディレクトリリスト
 	node_list = []			//ノードリスト
+	pressingTab = false
 }
 
 
@@ -753,6 +622,7 @@ function create_node(_mode,_read_node_info){
 	_node.oncontextmenu =()=>	{return false}						//ノードを右クリックした時、通常出る右クリメニューを出なくする（邪魔なので）
 	_node.ondragstart =(e)=>	{e.preventDefault();}				//移動時に文字がドラッグ開始されちてバグるからそれを禁止
 	_node.onmousewheel =(e)=>	{onMouseWheelOnNode(e,_node);}		//マウスホイール
+	_node.onblur =(e) => 		{pre_focused_node =e.target;}		//ブラー
 	_node.className = "node"
 	_node.spellcheck　=　false
 
@@ -1017,15 +887,203 @@ window.onresize = (e) =>{
 	}
 }
 
+
+
+
 //キーボード管理（キーダウン）
 window.onkeydown=(e)=>{
+	
 	switch(e.code){
 
-	//BODY上でスペースキーを押したら現在のマウス位置にノードを作成する
+		//BODY上でスペースキーを押したら現在のマウス位置にノードを作成する
 		case "Space":
 			if(document.activeElement.tagName == "BODY"){
 				console.log("　　　　フォーカスが無い時にBODY上でスペース")
 				create_node("CREATE",null)
+			}
+			break
+		case "Tab":
+			e.preventDefault()
+			
+			//事務
+			if(pressingTab) break				//連続して押し続けているならbreak
+			console.log("　　　　Tabキーを押した")		
+			var _nodes = nodeGroup.children		//ノードリスト取得
+			if(!_nodes.length) break;			//ノード無いならbreak
+			pressingTab = true					//タブ押しフラグ
+			
+			current_node_info = []
+			for(var _node of _nodes){
+				var _info = {}
+				_info.id = Number(_node.id)
+				_info.left = parseInt(_node.style.left)
+				_info.top = parseInt(_node.style.top)
+				current_node_info.push(_info)
+			}
+
+			//フォーカス初期化
+			if(document.activeElement.className != "node"){
+			
+				//フォーカスがノードに合っておらず、でも前回フォーカスが合ってたノードがあるなら、それに合わせる
+				if(pre_focused_node){
+					focusingNode = pre_focused_node
+					focusingNode.focus()
+				}
+				
+				//フォーカスがノードに合っておらず、前回フォーカスが合ってたノードも無い場合、一番上に合わせる
+				else{
+					var _top = null
+					var _top_node_id = null
+					current_node_info.forEach((_node)=>{
+						if(_top == null || _top > _node.top){
+							_top = _node.top 
+							_top_node_id = _node.id
+						}
+					})
+					
+					focusingNode = document.getElementById(_top_node_id)
+					focusingNode.focus()
+				}
+			}
+			//フォーカスがノードに合っている場合、そのまま
+			else{
+				focusingNode = document.activeElement
+				focusingNode.blur()		//cssのフォーカスイベント使うためにあえて一度外してからまたフォーカス
+				focusingNode.focus()
+			}
+
+			
+			//事務
+			focusingNode.style.background = "green"
+			current_node_info_v = Object.assign([],current_node_info)
+			current_node_info_h = Object.assign([],current_node_info)
+			
+			
+			break
+		case "ArrowUp":
+			if(pressingTab){
+				//縦ソートしてないならする
+				if(!v_sorted){
+					ObjArraySort(current_node_info_v,"top")
+					v_sorted = true
+				}
+				
+				//座標的に上のノードのIDを取得（単純ソート）
+				var _up_id
+				for(var i=0; i<current_node_info_v.length; i++){
+					if(current_node_info_v[i].top == parseInt(focusingNode.style.top)){
+						if(i==0){
+							_up_id = current_node_info_v[current_node_info_v.length-1].id	//一番上なら一番下にフォーカス
+						}else{
+							_up_id = current_node_info_v[i-1].id
+						}
+						break
+					}
+				}
+
+				//事務
+				focusingNode.style.background = "rgb(0,0,0,0.8)"
+				focusingNode = document.getElementById(_up_id)
+				focusingNode.focus()
+				focusingNode.style.background = "green"
+			}
+			break
+		case "ArrowDown":
+			if(pressingTab){
+				//縦ソートしてないならする
+				if(!v_sorted){
+					ObjArraySort(current_node_info_v,"top")
+					v_sorted = true
+				}
+				
+				//座標的に下のノードのIDを取得（単純ソート）
+				var _down_id
+				for(var i=0; i<current_node_info_v.length; i++){
+					if(current_node_info_v[i].top == parseInt(focusingNode.style.top)){
+						if(i==current_node_info_v.length-1){
+							_down_id = current_node_info_v[0].id	//一番下なら一番上にフォーカス
+						}else{
+							_down_id = current_node_info_v[i+1].id
+						}
+						break
+					}
+				}
+
+				//事務
+				focusingNode.style.background = "rgb(0,0,0,0.8)"
+				focusingNode = document.getElementById(_down_id)
+				focusingNode.focus()
+				focusingNode.style.background = "green"
+			}
+			break
+		case "ArrowLeft":
+			if(pressingTab){
+				//横ソートしてないならする
+				if(!h_sorted){
+					ObjArraySort(current_node_info_h,"left")
+					h_sorted = true
+				}
+				
+				//座標的に下のノードのIDを取得（単純ソート）
+				var _left_id
+				for(var i=0; i<current_node_info_h.length; i++){
+					if(current_node_info_h[i].left == parseInt(focusingNode.style.left)){
+						if(i==0){
+							_left_id = current_node_info_h[current_node_info_h.length-1].id	//一番左なら一番右にフォーカス
+						}else{
+							_left_id = current_node_info_h[i-1].id
+						}
+						break
+					}
+				}
+
+				//事務
+				focusingNode.style.background = "rgb(0,0,0,0.8)"
+				focusingNode = document.getElementById(_left_id)
+				focusingNode.focus()
+				focusingNode.style.background = "green"
+			}
+			break
+		case "ArrowRight":
+			if(pressingTab){
+				//横ソートしてないならする
+				if(!h_sorted){
+					ObjArraySort(current_node_info_h,"left")
+					h_sorted = true
+				}
+				
+				//座標的に下のノードのIDを取得（単純ソート）
+				var _right_id
+				for(var i=0; i<current_node_info_h.length; i++){
+					if(current_node_info_h[i].left == parseInt(focusingNode.style.left)){
+						if(i==current_node_info_h.length-1){
+							_right_id = current_node_info_h[0].id	//一番右なら一番左にフォーカス
+						}else{
+							_right_id = current_node_info_h[i+1].id
+						}
+						break
+					}
+				}
+
+				//事務
+				focusingNode.style.background = "rgb(0,0,0,0.8)"
+				focusingNode = document.getElementById(_right_id)
+				focusingNode.focus()
+				focusingNode.style.background = "green"
+			}
+			break
+		
+	}
+}
+window.onkeyup=(e)=>{
+	switch(e.code){
+		case "Tab":
+			console.log("　　　　Tabキーをあげた")
+			pressingTab = false		//スペースキー押したフラグ下ろす
+			v_sorted = false
+			h_sorted = false
+			if(focusingNode){
+				focusingNode.style.background = "rgb(0,0,0,0.8)"
 			}
 			break
 	}
@@ -1033,10 +1091,21 @@ window.onkeydown=(e)=>{
 	
 	
 	
-	
-	
-	
-	
+//オブジェクト配列を好きな順番にソートする
+function ObjArraySort(ary, key, order) {
+    var reverse = 1;
+    if(order && order.toLowerCase() == "desc") 
+        reverse = -1;
+    ary.sort(function(a, b) {
+        if(a[key] < b[key])
+            return -1 * reverse;
+        else if(a[key] == b[key])
+            return 0;
+        else
+            return 1 * reverse;
+    });
+}
+
 	
 	
 	
