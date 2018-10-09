@@ -311,6 +311,8 @@ var current_dir_id		//所属ディレクトリID（初期値rootは0）
 var scale				//画面拡大率
 var pre_scale			//前回の画面拡大率
 var pressingTab 		//タブを押してる途中フラグ
+var ids_contained_by_target = []
+var modaling			//モーダルウィンドウ出てるフラグ
 //タブ移動関連
 var current_node_info = []
 var current_node_info_v = []
@@ -530,7 +532,7 @@ downloadJson.onclick = ()=>{
 	_save_data.node_list = node_list
 	_save_data.dir_list = dir_list
 	_save_data.max_id = node_id_cnt
-	_save_data.font_size = defFontSizeInfo.value
+	_save_data.font_size = Number(defFontSizeInfo.value)
 
 	//変数
 	var blob = new Blob( [JSON.stringify(_save_data)], {type: 'text/plain'} )
@@ -917,73 +919,6 @@ function removeNodeAndLinesAndToFrom_FromDom(_node_id){
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-//----------------------------------------------------------------------------------------------------------------マウス以外イベント
-
-
-window.onresize = (e) =>{
-	scale = window.devicePixelRatio.toFixed(2);
-	var _adjustScale = 1/scale;
-	
-	//svgカンバスの大きさを拡大率の合わせて調整
-	if(scale != pre_scale){
-		console.log("%c拡大率変更によるリサイズ","color:green")
-		//カンバス表示幅
-		svgCanvas.setAttribute("width" , window.outerWidth*_adjustScale)
-		svgCanvas.setAttribute("height", window.outerHeight*_adjustScale)
-		//インフォグループ表示位置
-		infoGroup.style.width  = INFOGROUP_WIDTH*_adjustScale+"px"
-		infoGroup.style.top  =  10*_adjustScale + "px"
-		infoGroup.style.left =  (window.outerWidth-INFOGROUP_WIDTH-INFOGROUP_RIGHT_GAP)*_adjustScale +"px"
-		infoGroup.style.fontSize = INFOGROUP_FONTSIZE*_adjustScale+"px"
-		infoGroup.style.lineHeight = "1em"
-		rewriteStyle(cssOfInfoValuesClass,".infoValues","margin-left",20*_adjustScale+"px;")
-		rewriteStyle(cssOfInfoValuesClass,".infoValues","font-size",INFOGROUP_FONTSIZE*_adjustScale+"px;")
-
-		//事務
-		scaleDisp.innerText = scale
-		pre_scale = scale
-	}else{
-		console.log("%cウィンドウ幅変更によるリサイズ","color:green")
-
-		//カンバス表示幅
-		svgCanvas.setAttribute("width" , window.outerWidth*_adjustScale +"px")
-		svgCanvas.setAttribute("height", window.outerHeight*_adjustScale +"px")
-		//インフォグループ表示位置
-		infoGroup.style.left = window.outerWidth*_adjustScale - (Number(infoGroup.clientWidth) + Number(INFOGROUP_RIGHT_GAP)) +"px"
-	}
-}
-
-var ids_contained_by_target = []
-
-//集めたのを全部dir_list、node_listから削除。最後、別として親dirのcontain_idsから削除（いる？）
-
-
-function get_all_contain_ids(_id){
-	var _elem = getElement_ByKeyValuePair_FromArrayOfObject(dir_list,"id",_id)
-	
-	//dirにあり、contain_idsがあるなら
-	if(_elem){
-		if(_elem.contain_ids.length){	
-			Array.prototype.push.apply(ids_contained_by_target,_elem.contain_ids)	//リストに追加する
-			for(var contain_id of _elem.contain_ids){
-				get_all_contain_ids(contain_id)		//再帰で調べる
-			}
-		}
-	}
-}
-
 //ノードを削除（カレントディレクトリ上での削除のみ対応）
 function del_node(_id){
 	console.log("%c　　ノード削除","color:green")
@@ -1091,12 +1026,135 @@ function del_node_modal(_node){
 	_no_box.appendChild(_no_button)
 }
 
+//モーダルウィンドウを閉じる
 function close_modal(){
 	removeElementById("modal_back")
+	modaling = false
 }
+
+
+//ノードを他ノードに入れるか確認
+function dive_node_modal(_node){
+	var _modal_back = document.createElement("div")
+	_modal_back.id = "modal_back"
+	document.body.appendChild(_modal_back)
 	
+	var _modal = document.createElement("div")
+	_modal.id = "modal"
+	_modal_back.appendChild(_modal)
+	
+	//確認文
+	var _title = document.createElement("div")
+	_title.id = "modal_title"
+	_title.innerText = "put "+_node.id+" in "+canDroppedNode.id+" ?"
+	_modal.appendChild(_title)
+
+	//確認文
+	var _confirm = document.createElement("div")
+	_confirm.id = "insight"
+	_confirm.innerText = _node.value
+	_modal.appendChild(_confirm)
+	
+	//yesボタン
+	var _yes_box = document.createElement("div")
+	_yes_box.id = "yes_button"
+	_modal.appendChild(_yes_box)
+	var _yes_button = document.createElement("input")
+	_yes_button.type = "button"
+	_yes_button.value = "yes"
+	_yes_button.className = "modal_button"
+	_yes_button.onclick = () =>{ move_node_dir_to_dir(draggingNodeL.id, current_dir_id, canDroppedNode.id); close_modal_for_dropping_node(); }
+	_yes_box.appendChild(_yes_button)
+
+	//noボタン
+	var _no_box = document.createElement("div")
+	_no_box.id = "no_button"
+	_modal.appendChild(_no_box)
+	var _no_button = document.createElement("input")
+	_no_button.type = "button"
+	_no_button.value = "no"
+	_no_button.className = "modal_button"
+	_no_button.onclick = () => { close_modal_for_dropping_node(); }
+	_no_box.appendChild(_no_button)
+	
+	modaling = true
+}
+
+function close_modal_for_dropping_node(){
+	removeElementById("modal_back")
+	//調整
+	style_for_dir(canDroppedNode)						//フォルダとして色つける
+	canDroppedNode.style.background = "rgb(0,0,0,0.8)"	//背景色を戻す
+	canDroppedNode = null								//フラグオフ
+	draggingNodeL.style.top = xyBeforeDrag.y +"px"		//もとに戻しておく
+	draggingNodeL.style.left = xyBeforeDrag.x +"px"		//もとに戻しておく
+	xyBeforeDrag = null									//ドラッグ前座標
+	draggingNodeL = null
+	modaling = false
+}
 
 
+
+
+
+
+
+
+
+//----------------------------------------------------------------------------------------------------------------マウス以外イベント
+
+
+window.onresize = (e) =>{
+	scale = window.devicePixelRatio.toFixed(2);
+	var _adjustScale = 1/scale;
+	
+	//svgカンバスの大きさを拡大率の合わせて調整
+	if(scale != pre_scale){
+		console.log("%c拡大率変更によるリサイズ","color:green")
+		//カンバス表示幅
+		svgCanvas.setAttribute("width" , window.outerWidth*_adjustScale)
+		svgCanvas.setAttribute("height", window.outerHeight*_adjustScale)
+		//インフォグループ表示位置
+		infoGroup.style.width  = INFOGROUP_WIDTH*_adjustScale+"px"
+		infoGroup.style.top  =  10*_adjustScale + "px"
+		infoGroup.style.left =  (window.outerWidth-INFOGROUP_WIDTH-INFOGROUP_RIGHT_GAP)*_adjustScale +"px"
+		infoGroup.style.fontSize = INFOGROUP_FONTSIZE*_adjustScale+"px"
+		infoGroup.style.lineHeight = "1em"
+		rewriteStyle(cssOfInfoValuesClass,".infoValues","margin-left",20*_adjustScale+"px;")
+		rewriteStyle(cssOfInfoValuesClass,".infoValues","font-size",INFOGROUP_FONTSIZE*_adjustScale+"px;")
+
+		//事務
+		scaleDisp.innerText = scale
+		pre_scale = scale
+	}else{
+		console.log("%cウィンドウ幅変更によるリサイズ","color:green")
+
+		//カンバス表示幅
+		svgCanvas.setAttribute("width" , window.outerWidth*_adjustScale +"px")
+		svgCanvas.setAttribute("height", window.outerHeight*_adjustScale +"px")
+		//インフォグループ表示位置
+		infoGroup.style.left = window.outerWidth*_adjustScale - (Number(infoGroup.clientWidth) + Number(INFOGROUP_RIGHT_GAP)) +"px"
+	}
+}
+
+
+//集めたのを全部dir_list、node_listから削除。最後、別として親dirのcontain_idsから削除（いる？）
+function get_all_contain_ids(_id){
+	var _elem = getElement_ByKeyValuePair_FromArrayOfObject(dir_list,"id",_id)
+	
+	//dirにあり、contain_idsがあるなら
+	if(_elem){
+		if(_elem.contain_ids.length){	
+			Array.prototype.push.apply(ids_contained_by_target,_elem.contain_ids)	//リストに追加する
+			for(var contain_id of _elem.contain_ids){
+				get_all_contain_ids(contain_id)		//再帰で調べる
+			}
+		}
+	}
+}
+
+
+	
 
 //キーボード管理（キーダウン）
 window.onkeydown=(e)=>{
@@ -1478,6 +1536,7 @@ window.onmousemove=(e)=>{
 
 	//ノード左ドラッグ中
 	else if(draggingNodeL){	
+		if(modaling) return
 		console.log("　　　　ノード上を左ドラッグ中")
 		
 		//事務
@@ -1580,8 +1639,10 @@ function onMouseOutOnNode(e){
 	if(draggingNodeL){
 		console.log("　　　　ノードを左ドラッグ中になんらかのノードからマウスアウト")
 		if(canDroppedNode){										//ドロップ可能ノードがあったなら
-			canDroppedNode.style.background = "rgb(0,0,0,0.8)"		//canDroppedNodeの色を戻す
-			canDroppedNode = null									//canDroppedNodeをオフにする
+			if(!modaling){
+				canDroppedNode.style.background = "rgb(0,0,0,0.8)"		//canDroppedNodeの色を戻す
+				canDroppedNode = null									//canDroppedNodeをオフにする
+			}
 		}
 	}
 
@@ -1621,22 +1682,19 @@ window.onmouseup=(e)=>{
 	else if(draggingNodeL){			
 		console.log("　　　　ノード左ドラッグ終了")
 		
-		//もし他のノードにもmouseonしているのならば、それの中にノードを移動させる
+		//もし他のノードにもmouseonしているのならば、それの中にノードを移動させる（的な処理だったけど、確認画面を入れてからやるようにしたので少しif文増えた）
+		//ここのif文の分岐は勘なので不具合出たら考えて
 		if(canDroppedNode){
-			console.log("%c　　ノード移動（"+draggingNodeL.id+"→"+canDroppedNode.id+"）","color:green")
-			
-			//ノード移動
-			move_node_dir_to_dir(draggingNodeL.id, current_dir_id, canDroppedNode.id)
-			
-			//調整
-			style_for_dir(canDroppedNode)						//フォルダとして色つける
-			canDroppedNode.style.background = "rgb(0,0,0,0.8)"	//背景色を戻す
-			canDroppedNode = null								//フラグオフ
-			xyBeforeDrag = null									//ドラッグ前座標
+			if(!modaling){
+				console.log("%c　　ノード移動（"+draggingNodeL.id+"→"+canDroppedNode.id+"）","color:green")
+				
+				//ノード移動
+				dive_node_modal(draggingNodeL)
+			}
+		}else{
+			draggingNodeL.style.zIndex = 2		//前後を戻す
+			draggingNodeL = null				//フラグオフ
 		}
-		
-		draggingNodeL.style.zIndex = 2		//前後を戻す
-		draggingNodeL = null				//フラグオフ
 	}
 	
 	//ノードの右ドラッグ終了なら、スタイルを戻しフラグを下ろす
