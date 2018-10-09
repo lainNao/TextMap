@@ -34,6 +34,7 @@ body{
 		height:10px;
 		color:teal;
 		z-index:2;
+		user-select:none;
 	}		
 			#mindMapName{
 				border:none;
@@ -97,6 +98,76 @@ body{
 	z-index:2;
 }
 
+
+
+#modal_back{
+	position:absolute;
+	z-index:10; 
+	top:0px;
+	left:0px;
+	width:100%;
+	height:100%;
+	background-color:rgb(0,0,0,0.8);
+}
+#modal{
+	display:grid;
+	grid-template-columns: 50% 50%;
+	grid-template-rows: 70px 1fr 100px;
+	grid-gap:40px;
+
+	position:absolute;
+	z-index:11; 
+	top:0px; left:0px; right: 0px; bottom: 0px; 
+	margin: auto; 
+
+	width: 500px;
+	height:80%;;
+	color:white;
+}
+#modal_title{
+	grid-column-start:1;
+	grid-column-end:3;
+	grid-row:1;
+	grid-column:1/3;
+
+	display: flex;align-items: center; justify-content: center; /*縦中央寄せ*/
+	text-align:center; /*横中央寄せ*/
+}
+#insight{
+	grid-column-start:1;
+	grid-column-end:3;
+	grid-row:2;
+
+	overflow-y:auto;
+	overflow-x:hidden;
+
+	display: flex;align-items: center; justify-content: center; /*縦中央寄せ*/
+	text-align:center; /*横中央寄せ*/
+
+	font-size:12px;
+	user-select: auto;
+}
+#yes_button{
+	grid-row:3;
+	grid-column-start:1;
+	grid-column-end:2;
+
+	display: flex;align-items: center; justify-content: center; /*縦中央寄せ*/
+	text-align:center; /*横中央寄せ*/
+}
+#no_button{
+	grid-row:3;
+	grid-column-start:2;
+	grid-column-end:3;
+
+	display: flex;align-items: center; justify-content: center; /*縦中央寄せ*/
+	text-align:center; /*横中央寄せ*/
+}
+
+.modal_button{
+	width:60%;
+	height:40%;
+}
 
 </style>
 <style type="text/css" id="cssOfInfoValuesClass">
@@ -641,14 +712,14 @@ function create_node(_mode,_read_node_info){
 		_node.setAttribute("style","left:"+x+"px; top:"+y+"px; width:"+defW+"px; height:"+defH+"px; z-index:2;")
 		_node.dataset.to =  "[]"
 		_node.dataset.from =  "[]"
-		_node.dataset.is_dir = false
+		_node.dataset.is_dir = "false"
 		
 		//事務
 		node_id_cnt = node_id_cnt + 1		//作成するノード番号を++
 		node_list.push({					//ノードリスト
 			"id":Number(_node.id),
 			"parent_id":Number(current_dir_id),
-			"is_dir":false,
+			"is_dir":"false",
 			"content": "",
 			"left":Number(x),
 			"top":Number(y),
@@ -703,11 +774,13 @@ function save_current_dir_and_node(){
 	
 	//データ的に保存・更新（dir）
 	var _dir = getElement_ByKeyValuePair_FromArrayOfObject(dir_list, "id", current_dir_id)
-	_dir.name = presentDirName.value
-	_dir.contain_ids = _ids
-	_dir.moved_position = moved_position
-	_dir.def_node_size = {"width": Number(defWidthInfo.value), "height":Number(defHeightInfo.value) }
-	dir_list.some((dir)=>{ return ((dir.id==Number(_dir.id)) ? dir=_dir : false) })		//できてる…？怪しいんじゃ？
+	if(_dir){
+		_dir.name = presentDirName.value
+		_dir.contain_ids = _ids
+		_dir.moved_position = moved_position
+		_dir.def_node_size = {"width": Number(defWidthInfo.value), "height":Number(defHeightInfo.value) }
+		dir_list.some((dir)=>{ return ((dir.id==Number(_dir.id)) ? dir=_dir : false) })		//できてる…？怪しいんじゃ？
+	}
 }
 
 //ディレクトリをデータ的に作成
@@ -764,23 +837,23 @@ function move_node_dir_to_dir(_node_id, _from_id, _to_id){
 	
 	
 	//dir_list編集
-	//移動元dir
-	dir_list.some((_dir)=>{			//移動元からは削除
+	//移動元dir（contain_idsから削除）
+	dir_list.some((_dir)=>{		
 		if(_dir.id == Number(_from_id)){
-			_dir.contain_ids = _dir.contain_ids.some((v,i)=>{	//contain_ids削除
+			_dir.contain_ids = _dir.contain_ids.some((v,i)=>{
 				if(v==Number(_node_id)) _dir.contain_ids.splice(i,1)
 			})
 			return true
 		}
 	})
-	//移動先dir
+	//移動先dir（contain_idsへ追加）
 	dir_list.some((_dir)=>{			
 		if(_dir.id == Number(_to_id)){
-			_dir.contain_ids.push(Number(_node_id))						//contain_ids追加
+			_dir.contain_ids.push(Number(_node_id))	
 			return true
 		}
 	})
-	//自分dir
+	//自分dir（自分がdirなら、親dirを変える）
 	dir_list.some((_dir)=>{
 		if(_dir.id == Number(_node_id)){		//移動する自分がdirなら
 			_dir.parent_id = Number(_to_id)			//dir_listで親idを変える
@@ -888,6 +961,136 @@ window.onresize = (e) =>{
 	}
 }
 
+var ids_contained_by_target = []
+
+//集めたのを全部dir_list、node_listから削除。最後、別として親dirのcontain_idsから削除（いる？）
+
+
+function get_all_contain_ids(_id){
+	var _elem = getElement_ByKeyValuePair_FromArrayOfObject(dir_list,"id",_id)
+	
+	//dirにあり、contain_idsがあるなら
+	if(_elem){
+		if(_elem.contain_ids.length){	
+			Array.prototype.push.apply(ids_contained_by_target,_elem.contain_ids)	//リストに追加する
+			for(var contain_id of _elem.contain_ids){
+				get_all_contain_ids(contain_id)		//再帰で調べる
+			}
+		}
+	}
+}
+
+//ノードを削除（カレントディレクトリ上での削除のみ対応）
+function del_node(_id){
+	console.log("%c　　ノード削除","color:green")
+
+	var _elem = getElement_ByKeyValuePair_FromArrayOfObject(node_list,"id",_id)
+	var _parent_id = _elem.parent_id
+
+	get_all_contain_ids(Number(_id))			//削除するための内包ノードを収集
+	ids_contained_by_target.push(Number(_id))	//自分も削除対象に含める
+
+	//node_listやdir_listから一斉削除
+	node_list = node_list.filter((elem)=>{
+		if(ids_contained_by_target.indexOf(elem.id)==-1){	//集めたcontainリストに含まれてないのだけで新配列作成
+			return true
+		}
+	})
+	dir_list = dir_list.filter((elem)=>{
+		if(ids_contained_by_target.indexOf(elem.id)==-1){	//集めたcontainリストに含まれてないのだけで新配列作成
+			return true
+		}
+	})
+
+	//親のcontain_idsから自分を削除
+	var _parent_is_dir = null
+	dir_list.some((_dir,i)=>{		
+		if(_dir.id == _parent_id){			//親要素の時、
+			_dir.contain_ids.some((v,j)=>{	//そのcontain_idsを走査して
+				if(v==_id){							//自分のidがあったら
+					_dir.contain_ids.splice(j,1)			//それを消す
+					
+					//他
+					_parent_is_dir = eval(_dir.contain_ids).length
+					return true
+				}
+			})
+
+			return true
+		}
+	})
+	//親が自分をcontainしなくなったことでdirでなくなった場合、is_dirをfalse化
+	if(!_parent_is_dir){
+		node_list.some((elem)=>{
+			if(elem.id == _parent_id){
+				elem.is_dir = "false"
+				return true
+			}
+		})		
+	}
+
+	
+	//DOM的に削除（カレントディレクトリにあるなら）
+	var _node = document.getElementById(_id)
+	if(_node){
+		removeNodeAndLinesAndToFrom_FromDom(_id)
+	}
+	
+	ids_contained_by_target = []
+}
+
+function del_node_modal(_node){
+	var _modal_back = document.createElement("div")
+	_modal_back.id = "modal_back"
+	document.body.appendChild(_modal_back)
+	
+	var _modal = document.createElement("div")
+	_modal.id = "modal"
+	_modal_back.appendChild(_modal)
+	
+	//確認文
+	var _title = document.createElement("div")
+	_title.id = "modal_title"
+	if(_node.dataset.is_dir=="true"){
+		_title.innerText = "remove dir node "+_node.id+" ?"
+	}else{
+		_title.innerText = "remove node "+_node.id+" ?"
+	}
+	_modal.appendChild(_title)
+
+	//確認文
+	var _confirm = document.createElement("div")
+	_confirm.id = "insight"
+	_confirm.innerText = _node.value
+	_modal.appendChild(_confirm)
+	
+	//yesボタン
+	var _yes_box = document.createElement("div")
+	_yes_box.id = "yes_button"
+	_modal.appendChild(_yes_box)
+	var _yes_button = document.createElement("input")
+	_yes_button.type = "button"
+	_yes_button.value = "yes"
+	_yes_button.className = "modal_button"
+	_yes_button.onclick = () =>{ save_current_dir_and_node(); del_node(_node.id); close_modal(); }
+	_yes_box.appendChild(_yes_button)
+
+	//noボタン
+	var _no_box = document.createElement("div")
+	_no_box.id = "no_button"
+	_modal.appendChild(_no_box)
+	var _no_button = document.createElement("input")
+	_no_button.type = "button"
+	_no_button.value = "no"
+	_no_button.className = "modal_button"
+	_no_button.onclick = () => { close_modal(); }
+	_no_box.appendChild(_no_button)
+}
+
+function close_modal(){
+	removeElementById("modal_back")
+}
+	
 
 
 
@@ -895,6 +1098,20 @@ window.onresize = (e) =>{
 window.onkeydown=(e)=>{
 	
 	switch(e.code){
+	
+		//ノード選択状態でescキー押すと削除確認画面を出す
+		case "Escape":
+			console.log("　　　　Escキーを押した")		
+			if(document.activeElement.className == "node"){
+				del_node_modal(document.activeElement)
+			}
+			break
+		
+		//F5更新はキャンセル
+		case "F5":
+			console.log("　　　　F5キーを押した")		
+			e.preventDefault()
+			break
 
 		//BODY上でスペースキーを押したら現在のマウス位置にノードを作成する
 		case "Space":
@@ -1123,10 +1340,6 @@ function ObjArraySort(ary, key, order) {
 //---------------------------------------------------------------------------------------------------------------------------マウスイベント
 
 
-//画面選択禁止（カンバスをドラッグしてる時infoGroupが一気に選択されることあるため）
-document.onselectstart = (e)=>{
-	return false
-}
 
 
 //----------------------------------------------------------------------マウスホイール
@@ -1136,11 +1349,11 @@ function onMouseWheelOnNode(e,_node){
 		console.log("　　　　ノード上でマウスホイールを上に回した");
 		
 		//ノードがすでにディレクトリならそれを読み込む
-		if(_node.dataset.is_dir == "true"){
+		var _is_dir = dir_list.some((elem)=>{ if(elem.id == _node.id){return true} })	//dir_listにあるか
+		if(_is_dir){			//あるなら読み込む
 			console.log("%cdir読込（"+_node.id+"）","color:orange")
 			move_dir(_node.id)
 		}
-		
 		//そうでないなら新規ディレクトリ作成
 		else{
 			make_dir(getElement_ByKeyValuePair_FromArrayOfObject(node_list, "id", Number(_node.id)))
