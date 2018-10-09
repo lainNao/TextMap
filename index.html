@@ -461,10 +461,13 @@ window.ondrop=(e)=>{
 			node_list = _json.node_list				//ノード情報
 			dir_list = _json.dir_list				//dir情報
 			node_id_cnt = _json.max_id				//ノードカウンタ
+			defFontSizeInfo.value = _json.font_size	//フォントサイズ
 			move_dir("READ_FILE")					//ルートを表示
 
 			//表示更新
 			mindMapName.value = file.name.slice(0,-5)
+			rewriteStyle(cssOfNodeClass,".node","font-size",_json.font_size+"px;");		//フォントサイズ
+
 		}
 		reader.readAsText(file)						//読み込み開始
 	}
@@ -527,6 +530,7 @@ downloadJson.onclick = ()=>{
 	_save_data.node_list = node_list
 	_save_data.dir_list = dir_list
 	_save_data.max_id = node_id_cnt
+	_save_data.font_size = defFontSizeInfo.value
 
 	//変数
 	var blob = new Blob( [JSON.stringify(_save_data)], {type: 'text/plain'} )
