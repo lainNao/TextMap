@@ -1063,7 +1063,7 @@ function dive_node_modal(_node){
 	_yes_button.type = "button"
 	_yes_button.value = "yes"
 	_yes_button.className = "modal_button"
-	_yes_button.onclick = () =>{ move_node_dir_to_dir(draggingNodeL.id, current_dir_id, canDroppedNode.id); close_modal_for_dropping_node(); }
+	_yes_button.onclick = () =>{ move_node_dir_to_dir(draggingNodeL.id, current_dir_id, canDroppedNode.id); close_modal_for_dropping_node("DO"); }
 	_yes_box.appendChild(_yes_button)
 
 	//noボタン
@@ -1074,24 +1074,54 @@ function dive_node_modal(_node){
 	_no_button.type = "button"
 	_no_button.value = "no"
 	_no_button.className = "modal_button"
-	_no_button.onclick = () => { close_modal_for_dropping_node(); }
+	_no_button.onclick = () => { close_modal_for_dropping_node("CANCEL"); }
 	_no_box.appendChild(_no_button)
 	
 	modaling = true
 }
 
-function close_modal_for_dropping_node(){
+function close_modal_for_dropping_node(_mode){
+	
+	if(_mode=="CANCEL"){
+		//ノード移動（マウスとともに左ドラッグで移動）
+		var posX = (xyBeforeDrag.x)|0;
+		var posY = (xyBeforeDrag.y)|0;
+		draggingNodeL.style.left = posX+"px"
+		draggingNodeL.style.top = posY+"px"
+
+		//ノード移動とともに、lineも合わせて移動（煩雑だけどとにかくできてる）
+		var centerX = posX+Number(draggingNodeL.clientWidth)/2		//ノードの中心座標X
+		var centerY = posY+Number(draggingNodeL.clientHeight)/2		//ノードの中心座標Y
+		for(var toNodeId of eval(draggingNodeL.getAttribute("data-to"))){
+			var toLines = lineGroup.querySelectorAll('[data-to="'+toNodeId+'"][data-from="'+draggingNodeL.id+'"')
+			for(var toLine of toLines){
+				toLine.setAttribute("x1",centerX)
+				toLine.setAttribute("y1",centerY)
+			}
+		}
+		for(var fromNodeId of eval(draggingNodeL.getAttribute("data-from"))){
+			var fromLines = lineGroup.querySelectorAll('[data-from="'+fromNodeId+'"][data-to="'+draggingNodeL.id+'"')
+			for(var fromLine of fromLines){
+				fromLine.setAttribute("x2",centerX)
+				fromLine.setAttribute("y2",centerY)
+			}
+		}
+	}else if(_mode=="DO"){
+		//調整
+		draggingNodeL.style.top = xyBeforeDrag.y +"px"		//もとに戻しておく
+		draggingNodeL.style.left = xyBeforeDrag.x +"px"		//もとに戻しておく
+	}
+
 	removeElementById("modal_back")
-	//調整
 	style_for_dir(canDroppedNode)						//フォルダとして色つける
 	canDroppedNode.style.background = "rgb(0,0,0,0.8)"	//背景色を戻す
-	canDroppedNode = null								//フラグオフ
-	draggingNodeL.style.top = xyBeforeDrag.y +"px"		//もとに戻しておく
-	draggingNodeL.style.left = xyBeforeDrag.x +"px"		//もとに戻しておく
 	xyBeforeDrag = null									//ドラッグ前座標
 	draggingNodeL = null
 	modaling = false
+	canDroppedNode = null								//フラグオフ
+
 }
+
 
 
 
