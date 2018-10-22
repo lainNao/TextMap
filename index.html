@@ -1863,7 +1863,6 @@ function rewriteStyle(_cssElem,_selector,_property,_value){
 	if(contents.indexOf(_property) != -1){
 		var regExp = new RegExp("(?<="+_property+" *:).*?(?=[!;]*;)")
 		var result = contents.replace(regExp,_value)
-		console.log(result)
 	}else{
 		var result = contents.replace("}","\t"+_property+":"+_value+";}")
 	}
