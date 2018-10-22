@@ -1852,14 +1852,16 @@ function getCssProperty(_elmId, _property){
 
 //指定スタイル要素の、指定セレクタ指定プロパティにあるvalueを変える
 function rewriteStyle(_cssElem,_selector,_property,_value){
+
 	//事務
 	var css = _cssElem.innerText
 	var matchSelectorAndContent = new RegExp(_selector+" ?{.*(.*\n)*?}")
 	var contents = css.match(matchSelectorAndContent)[0]
+	
 
 	//書き換え文章作成
 	if(contents.indexOf(_property) != -1){
-		var regExp = new RegExp("(?<="+_property+" *:).*")
+		var regExp = new RegExp("(?<="+_property+" *:).*(?=;$)")
 		var result = contents.replace(regExp,_value)
 	}else{
 		var result = contents.replace("}","\t"+_property+":"+_value+";\n}")
