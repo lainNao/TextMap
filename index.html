@@ -1861,11 +1861,13 @@ function rewriteStyle(_cssElem,_selector,_property,_value){
 
 	//書き換え文章作成
 	if(contents.indexOf(_property) != -1){
-		var regExp = new RegExp("(?<="+_property+" *:).*?(?=[!;]*;)")
-		var result = contents.replace(regExp,_value)
+		var regExp = new RegExp("(?<="+_property+" *:).*?;")
+		var result = contents.replace(regExp,_value+";")
 	}else{
 		var result = contents.replace("}","\t"+_property+":"+_value+";}")
 	}
+	
+	console.log(result)
 	
 	//書き換え
 	_cssElem.innerText = css.replace(matchSelectorAndContent,result)
