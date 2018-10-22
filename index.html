@@ -391,8 +391,8 @@ function init(){
 			infoGroup.style.left =  (window.outerWidth-INFOGROUP_WIDTH-INFOGROUP_RIGHT_GAP)*_adjustScale +"px"
 			infoGroup.style.fontSize = INFOGROUP_FONTSIZE*_adjustScale+"px"
 			infoGroup.style.lineHeight = Math.min(100*_adjustScale,100) +"%"	//いらないのでは？
-			rewriteStyle(cssOfInfoValuesClass,".infoValues","margin-left",20*_adjustScale+"px;")
-			rewriteStyle(cssOfInfoValuesClass,".infoValues","font-size",INFOGROUP_FONTSIZE*_adjustScale+"px;")
+			rewriteStyle(cssOfInfoValuesClass,".infoValues","margin-left",20*_adjustScale+"px")
+			rewriteStyle(cssOfInfoValuesClass,".infoValues","font-size",INFOGROUP_FONTSIZE*_adjustScale+"px")
 			pre_scale = scale
 		}
 
@@ -469,7 +469,7 @@ window.ondrop=(e)=>{
 
 			//表示更新
 			mindMapName.value = file.name.slice(0,-5)
-			rewriteStyle(cssOfNodeClass,".node","font-size",_json.font_size+"px;");		//フォントサイズ
+			rewriteStyle(cssOfNodeClass,".node","font-size",_json.font_size+"px");		//フォントサイズ
 
 		}
 		reader.readAsText(file)						//読み込み開始
@@ -598,7 +598,7 @@ defFontSizeInfo.onkeydown=(e)=>{
 //10以下なら10にする
 defFontSizeInfo.onblur=(_e)=>{
 	if(_e.target.value == "" || Number(_e.target.value) < 10) _e.target.value = 10
-	rewriteStyle(cssOfNodeClass,".node","font-size",_e.target.value+"px;");		//移動
+	rewriteStyle(cssOfNodeClass,".node","font-size",_e.target.value+"px");		//移動
 	
 }
 
@@ -669,7 +669,7 @@ function disp_dir(_dir){
 	//画面作成
 	disp_nodes_from_node_ids(_dir.contain_ids)																		//ノード表示
 	make_lines()																									//線表示
-	rewriteStyle(cssOfNodeClass,".node","transform","translate("+moved_position.x +"px,"+moved_position.y +"px);");	//移動
+	rewriteStyle(cssOfNodeClass,".node","transform","translate("+moved_position.x +"px,"+moved_position.y +"px)");	//移動
 	svgMainScreen.setAttribute("transform","translate("+moved_position.x+","+moved_position.y+")");					//移動
 }
 
@@ -1151,8 +1151,8 @@ window.onresize = (e) =>{
 		infoGroup.style.left =  (window.outerWidth-INFOGROUP_WIDTH-INFOGROUP_RIGHT_GAP)*_adjustScale +"px"
 		infoGroup.style.fontSize = INFOGROUP_FONTSIZE*_adjustScale+"px"
 		infoGroup.style.lineHeight = "1em"
-		rewriteStyle(cssOfInfoValuesClass,".infoValues","margin-left",20*_adjustScale+"px;")
-		rewriteStyle(cssOfInfoValuesClass,".infoValues","font-size",INFOGROUP_FONTSIZE*_adjustScale+"px;")
+		rewriteStyle(cssOfInfoValuesClass,".infoValues","margin-left",20*_adjustScale+"px")
+		rewriteStyle(cssOfInfoValuesClass,".infoValues","font-size",INFOGROUP_FONTSIZE*_adjustScale+"px")
 
 		//事務
 		scaleDisp.innerText = scale
@@ -1562,7 +1562,7 @@ window.onmousemove=(e)=>{
 		
 		//描画グループ達をtransform属性つけて移動させる
 		svgMainScreen.setAttribute("transform","translate("+moved_position.x +","+moved_position.y +")")
-		rewriteStyle(cssOfNodeClass,".node","transform","translate("+moved_position.x +"px,"+moved_position.y +"px);")
+		rewriteStyle(cssOfNodeClass,".node","transform","translate("+moved_position.x +"px,"+moved_position.y +"px)")
 	}
 
 	//ノード左ドラッグ中
@@ -1706,7 +1706,7 @@ window.onmouseup=(e)=>{
 
 		//描画グループ達をtransform属性つけて移動させる（最終調整）
 		svgMainScreen.setAttribute("transform","translate("+moved_position.x +","+moved_position.y +")")
-		rewriteStyle(cssOfNodeClass,".node","transform","translate("+moved_position.x +"px,"+moved_position.y +"px);")
+		rewriteStyle(cssOfNodeClass,".node","transform","translate("+moved_position.x +"px,"+moved_position.y +"px)")
 	}
 	
 	//ノード左ドラッグ終了なら、そのフラグを下ろし、ノードを移動させる
@@ -1861,10 +1861,11 @@ function rewriteStyle(_cssElem,_selector,_property,_value){
 
 	//書き換え文章作成
 	if(contents.indexOf(_property) != -1){
-		var regExp = new RegExp("(?<="+_property+" *:).*(?=;$)")
+		var regExp = new RegExp("(?<="+_property+" *:).*?(?=[!;]*;)")
 		var result = contents.replace(regExp,_value)
+		console.log(result)
 	}else{
-		var result = contents.replace("}","\t"+_property+":"+_value+";$}")
+		var result = contents.replace("}","\t"+_property+":"+_value+";}")
 	}
 	
 	//書き換え
