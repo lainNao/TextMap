@@ -1864,7 +1864,7 @@ function rewriteStyle(_cssElem,_selector,_property,_value){
 		var regExp = new RegExp("(?<="+_property+" *:).*(?=;$)")
 		var result = contents.replace(regExp,_value)
 	}else{
-		var result = contents.replace("}","\t"+_property+":"+_value+";\n}")
+		var result = contents.replace("}","\t"+_property+":"+_value+";$}")
 	}
 	
 	//書き換え
