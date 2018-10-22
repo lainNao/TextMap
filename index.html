@@ -1867,8 +1867,6 @@ function rewriteStyle(_cssElem,_selector,_property,_value){
 		var result = contents.replace("}","\t"+_property+":"+_value+";}")
 	}
 	
-	console.log(result)
-	
 	//書き換え
 	_cssElem.innerText = css.replace(matchSelectorAndContent,result)
 }
