@@ -78,5 +78,3 @@ URL: <https://neji205.github.io/TextMap>  （※現在PCのGoogle Chromeのみ�
 
 
 
-## Author
-[@popoponnponpopo](https://twitter.com/popoponnponpopo)
