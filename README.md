@@ -1,10 +1,10 @@
 TextMap
 ====
 シンプルな（マインド、テキスト）マップ作成ウェブアプリです
-  
-URL: <https://neji205.github.io/TextMap>  （※現在PCのGoogle Chromeのみで動作確認）
-  
-  
+
+URL: <https://lainnao.github.io/TextMap>  （※現在PCのGoogle Chromeのみで動作確認）
+
+
 
 ## 用途
 * ~~プロット作成中複数のアイデアを並列に管理したい時（テキストファイルだと少し根本的な厳しさがある）~~ （それ用に作ったけどやっぱテキスト上で差分作った方が管理楽かな…。ノードだと読みづらい）
@@ -12,17 +12,18 @@ URL: <https://neji205.github.io/TextMap>  （※現在PCのGoogle Chromeのみ�
 
 
 
-## デモ（プロットのアイデア分岐管理）  
+## デモ（プロットのアイデア分岐管理）
 
 （黄色い円はキャプチャソフト側の演出）
-![result](https://github.com/neji205/TextMap/blob/master/example.gif)
+![result](https://github.com/lainNao/TextMap/blob/master/example.gif)
 
-  
+
+
 ## 操作
 
 **ファイル操作**
 
-|     | 操作 | 
+|     | 操作 |
 | --- | --- |
 | ファイル名変更 | 右側 file name を変更 |
 | データ保存 | 右側 download をクリック |
@@ -40,7 +41,7 @@ URL: <https://neji205.github.io/TextMap>  （※現在PCのGoogle Chromeのみ�
 | ノードリサイズ | ノード右下部分を左ドラッグ |
 | フォーカスをキー操作で移動 | Tab + 矢印キー |
 | ノード削除 | （フォーカスがノードにある時に）Escキー |
-  
+
 **フォルダ操作**
 
 |     | 操作 |
@@ -49,7 +50,7 @@ URL: <https://neji205.github.io/TextMap>  （※現在PCのGoogle Chromeのみ�
 | ノードをフォルダ内へ移行 | ノードを別ノードへ左ドラッグ＆ドロップ |
 | フォルダ移動 | ノード上で上ホイール・サイト上で下ホイール |
 | フォルダ名変更 | 右側 dir name を変更 |
-  
+
 **スタイル設定**
 
 |     | 操作 |
@@ -75,7 +76,7 @@ URL: <https://neji205.github.io/TextMap>  （※現在PCのGoogle Chromeのみ�
 
 
 ## 開発状況
-* （2019/01/18） 3ヶ月ほど放置していたけどやっぱり作るの再開したいと思う。一つ思うことは「一人しか開発しないのにIssues使ってしまったのは見づらすぎる」。これからはIssues書かない。テキスト上で改善点、アイデアなどを書き溜めてそれを一つ一つこなしていく。
+* 古いのでやる気が出たら…
 
 
 ## Licence
